@@ -100,10 +100,10 @@ fn tree_grid_printer(grid: [[(u32, bool); NUM2]; NUM2]) {
     for row in grid {
         for (tree, seen) in row {
             if seen {
-                //print!("{}", '\u{1F332}')
-                print!("\x1b[94m{}\x1b[0m ", tree - 1);
+                //print!("{}",'\u{1F332}')
+                print!("\x1b[92m{}\x1b[0m", "^");
             } else {
-                print!("{} ", tree - 1);
+                print!("{}", ".");
             }
         }
         println!("");
