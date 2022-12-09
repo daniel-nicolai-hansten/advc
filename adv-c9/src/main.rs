@@ -35,7 +35,7 @@ fn main() {
                     grid[rope[9].y][rope[9].x] = true;
                     visited += 1;
                 }
-            //}
+                //}
             }
         }
         // println!(
@@ -83,33 +83,46 @@ impl RopePos {
         //}
     }
     fn move_tail(&mut self, head: RopePos) {
+        //if head.x > self.x && head.y != self.y
         if head.x > self.x + 1 {
-            if head.y != self.y {
-                self.y = head.y;
+            if head.y > self.y {
+                self.y += 1;
+            }
+            if head.y < self.y {
+                self.y -= 1;
             }
             self.x += 1;
         }
         if head.y > self.y + 1 {
-            if head.x != self.x {
-                self.x = head.x;
+            if head.x > self.x {
+                self.x += 1;
+            }
+            if head.x < self.x {
+                self.x -= 1;
             }
             self.y += 1;
         }
         if head.x < self.x - 1 {
-            if head.y != self.y {
-                self.y = head.y;
+            if head.y > self.y {
+                self.y += 1;
+            }
+            if head.y < self.y {
+                self.y -= 1;
             }
             self.x -= 1;
         }
         if head.y < self.y - 1 {
-            if head.x != self.x {
-                self.x = head.x;
+            if head.x > self.x {
+                self.x += 1;
+            }
+            if head.x < self.x {
+                self.x -= 1;
             }
             self.y -= 1;
         }
     }
 }
-fn grid_printer(grid: [[ bool; NUM]; NUM]) {
+fn grid_printer(grid: [[bool; NUM]; NUM]) {
     for row in grid {
         for seen in row {
             if seen {
