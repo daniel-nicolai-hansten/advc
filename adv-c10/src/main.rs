@@ -24,7 +24,7 @@ fn main() {
         clock += 1;
         let pos = (clock % 40) -1;
         if !(register >= (pos - 1) && register <= (pos +1)) {
-            print!(".");
+            print!(" ");
             //print!(". P{} r{}", pos, register);
         } else {
             print!("#");
