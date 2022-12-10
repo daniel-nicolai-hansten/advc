@@ -22,9 +22,18 @@ fn main() {
     }
     loop {
         clock += 1;
+        let pos = (clock % 40) -1;
+        if !(register >= (pos - 1) && register <= (pos +1)) {
+            print!(".");
+            //print!(". P{} r{}", pos, register);
+        } else {
+            print!("#");
+            //print!("#P{} r{}", pos, register);
+        }
         match clock {
-            20 | 60 | 100 | 140 | 180 | 220  => {
-                println!("{} {} {}", clock * register, clock, register);
+            40 | 80 | 120 | 160 | 200 | 240  => {
+                //println!("{} {} {}", clock * register, clock, register);
+                println!("");
                 result.push(clock * register);
             },
             _ => {},
@@ -35,7 +44,7 @@ fn main() {
     }
 
 
-    if clock > 240 {break;}
+    if clock >= 240 {break;}
     }
     println!("Sum {}", result.iter().sum::<i32>());
 }
