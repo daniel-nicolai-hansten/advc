@@ -83,18 +83,7 @@ impl RopePos {
         //}
     }
     fn move_tail(&mut self, head: RopePos) {
-        if head.x > self.x + 1 {
-            if head.y != self.y {
-                self.y = head.y;
-            }
-            self.x += 1;
-        }
-        if head.y > self.y + 1 {
-            if head.x != self.x {
-                self.x = head.x;
-            }
-            self.y += 1;
-        }
+
         if head.x < self.x - 1 {
             if head.y != self.y {
                 self.y = head.y;
@@ -106,6 +95,18 @@ impl RopePos {
                 self.x = head.x;
             }
             self.y -= 1;
+        }
+        if head.x > self.x + 1 {
+            if head.y != self.y {
+                self.y = head.y;
+            }
+            self.x += 1;
+        }
+        if head.y > self.y + 1 {
+            if head.x != self.x {
+                self.x = head.x;
+            }
+            self.y += 1;
         }
     }
 }
