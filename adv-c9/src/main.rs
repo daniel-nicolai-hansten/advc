@@ -10,12 +10,6 @@ fn main() {
         y: NUM / 2,
     }; 10];
     let mut visited = 0;
-    // let mut rope_pos = RopePos {
-    //     x: NUM / 2,
-    //     y: NUM / 2,
-    //     t_x: NUM / 2,
-    //     t_y: NUM / 2,
-    // };
     for line in input.lines() {
         let mut dir = Direction::Noop;
         match line.chars().nth(0).unwrap() {
@@ -30,20 +24,13 @@ fn main() {
             rope[0].move_pos(&dir);
             for i in 0..9 {
                 rope[i + 1].move_tail(rope[i]);
-                //if i == 0 {
                 if !grid[rope[9].y][rope[9].x] {
                     grid[rope[9].y][rope[9].x] = true;
                     visited += 1;
                 }
-            //}
             }
         }
-        // println!(
-        //     "Pos {} {} Tail: {} {}",
-        //     rope_pos.x, rope_pos.y, rope_pos.t_x, rope_pos.t_y
-        // );
     }
-    //grid_printer(grid);
     println!("visited {}", visited);
 }
 
@@ -55,6 +42,7 @@ R 17
 D 10
 L 25
 U 20";
+
 enum Direction {
     Up,
     Down,
@@ -62,12 +50,11 @@ enum Direction {
     Right,
     Noop,
 }
+
 #[derive(Copy, Clone)]
 struct RopePos {
     x: usize,
     y: usize,
-    // t_x: usize,
-    // t_y: usize,
 }
 impl RopePos {
     fn move_pos(&mut self, dir: &Direction) {
@@ -78,21 +65,45 @@ impl RopePos {
             Direction::Right => self.x += 1,
             _ => {}
         }
-        //if self.x != self.t_x && self.y != self.t_y {
-
-        //}
     }
     fn move_tail(&mut self, head: RopePos) {
+<<<<<<< HEAD
 
+=======
+        if head.x > self.x + 1 {
+            if head.y > self.y {
+                self.y += 1;
+            }
+            if head.y < self.y {
+                self.y -= 1;
+            }
+            self.x += 1;
+        }
+        if head.y > self.y + 1 {
+            if head.x > self.x {
+                self.x += 1;
+            }
+            if head.x < self.x {
+                self.x -= 1;
+            }
+            self.y += 1;
+        }
+>>>>>>> e896508beadae9f354679299e0cde793f3a5232b
         if head.x < self.x - 1 {
-            if head.y != self.y {
-                self.y = head.y;
+            if head.y > self.y {
+                self.y += 1;
+            }
+            if head.y < self.y {
+                self.y -= 1;
             }
             self.x -= 1;
         }
         if head.y < self.y - 1 {
-            if head.x != self.x {
-                self.x = head.x;
+            if head.x > self.x {
+                self.x += 1;
+            }
+            if head.x < self.x {
+                self.x -= 1;
             }
             self.y -= 1;
         }
@@ -110,7 +121,7 @@ impl RopePos {
         }
     }
 }
-fn grid_printer(grid: [[ bool; NUM]; NUM]) {
+fn grid_printer(grid: [[bool; NUM]; NUM]) {
     for row in grid {
         for seen in row {
             if seen {
