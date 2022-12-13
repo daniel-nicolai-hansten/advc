@@ -1,14 +1,19 @@
+use futures::stream::{FuturesUnordered, StreamExt};
 use std::collections::HashSet;
 use std::collections::VecDeque;
 #[allow(unused_variables)]
 use std::fs;
+use std::num;
 use std::slice::Iter;
 use std::time::{Duration, Instant};
 use std::{thread, time};
+use tokio::sync::{mpsc, oneshot};
+use tokio::task;
 const H: usize = 41;
 const W: usize = 136;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let mut map = [[0; W]; H];
     let mut end_pos = Pos { x: 0, y: 0 };
@@ -35,16 +40,20 @@ fn main() {
         }
     }
 
-    let mut list_moves = vec![];
-    //    println!("{:?}", start_pos);
     let start_pt1 = Instant::now();
-    let ans_pt1 = bfs(map, start_pos2, end_pos);
+    let ans_pt1 = bfs(map, start_pos2, end_pos).await;
+    let mut list_moves = vec![];
     let dur_pt1 = start_pt1.elapsed();
     let start_pt2 = Instant::now();
+    let mut workque = FuturesUnordered::new();
+    println!("{}", start_pos.len());
     for pos in start_pos {
-        if let Some(steps_taken) = bfs(map, pos, end_pos) {
-            //println!("y: {}  x: {} steps: {}", pos.y, pos.x, steps_taken);
-            list_moves.push(steps_taken);
+        workque.push(task::spawn(async move { bfs(map, pos, end_pos).await }));
+    }
+    while let Some(Ok(steps)) = workque.next().await {
+        if let Some(step) = steps {
+            println!("{}", step);
+            list_moves.push(step);
         }
     }
     let dur_pt2 = start_pt2.elapsed();
@@ -52,11 +61,11 @@ fn main() {
     list_moves.sort();
     println!(
         "pt1: {} pt2: {}",
-        bfs(map, start_pos2, end_pos).unwrap(),
+        bfs(map, start_pos2, end_pos).await.unwrap(),
         list_moves[0]
     );
 }
-fn bfs(map: [[usize; W]; H], start: Pos, end: Pos) -> Option<usize> {
+async fn bfs(map: [[usize; W]; H], start: Pos, end: Pos) -> Option<usize> {
     let mut que = VecDeque::new();
     let mut visited_map = [[false; W]; H];
     let mut steps = 0;
@@ -65,12 +74,8 @@ fn bfs(map: [[usize; W]; H], start: Pos, end: Pos) -> Option<usize> {
     visited_map[start.y][start.x] = true;
     'outer: while !que.is_empty() {
         steps += 1;
-        //grid_printer(visited_map);
-        //println!("");
-        //thread::sleep(time::Duration::from_millis(100));
         for _ in 0..que.len() {
             let current_node = que.pop_front().unwrap();
-            //visited.insert(current_node);
             for next_move in valid_next_move(map, current_node) {
                 if !visited_map[next_move.y][next_move.x] {
                     if end == next_move {
