@@ -1,19 +1,13 @@
-use futures::stream::{FuturesUnordered, StreamExt};
-use std::collections::HashSet;
+use rayon::prelude::*;
 use std::collections::VecDeque;
 #[allow(unused_variables)]
 use std::fs;
-use std::num;
 use std::slice::Iter;
 use std::time::{Duration, Instant};
-use std::{thread, time};
-use tokio::sync::{mpsc, oneshot};
-use tokio::task;
 const H: usize = 41;
 const W: usize = 136;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let mut map = [[0; W]; H];
     let mut end_pos = Pos { x: 0, y: 0 };
@@ -41,31 +35,26 @@ async fn main() {
     }
 
     let start_pt1 = Instant::now();
-    let ans_pt1 = bfs(map, start_pos2, end_pos).await;
-    let mut list_moves = vec![];
+    let ans_pt1 = bfs(map, start_pos2, end_pos);
+    let mut list_moves: Vec<u32> = vec![];
     let dur_pt1 = start_pt1.elapsed();
     let start_pt2 = Instant::now();
-    let mut workque = FuturesUnordered::new();
     println!("{}", start_pos.len());
-    for pos in start_pos {
-        workque.push(task::spawn(async move { bfs(map, pos, end_pos).await }));
-    }
-    while let Some(Ok(steps)) = workque.next().await {
-        if let Some(step) = steps {
-            println!("{}", step);
-            list_moves.push(step);
+    start_pos.into_par_iter().for_each(|pos| {
+        if let Some(steps) = bfs(map, pos, end_pos) {
+            println!("{}", steps)
         }
-    }
+    });
     let dur_pt2 = start_pt2.elapsed();
     println!("time1 {:?} time2 {:?}", dur_pt1, dur_pt2);
     list_moves.sort();
     println!(
-        "pt1: {} pt2: {}",
-        bfs(map, start_pos2, end_pos).await.unwrap(),
-        list_moves[0]
+        "pt1: {} pt2: ",
+        ans_pt1.unwrap(),
+        //list_moves[0]
     );
 }
-async fn bfs(map: [[usize; W]; H], start: Pos, end: Pos) -> Option<usize> {
+fn bfs(map: [[usize; W]; H], start: Pos, end: Pos) -> Option<usize> {
     let mut que = VecDeque::new();
     let mut visited_map = [[false; W]; H];
     let mut steps = 0;
