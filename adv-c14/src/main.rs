@@ -1,13 +1,11 @@
-use std::collections::VecDeque;
 #[allow(unused_variables)]
 use std::fs;
-use std::slice::Iter;
-const H: usize = 175;
-const W: usize = 1200;
+const H: usize = 188;
+const W: usize = 1000;
 const OFFSETX: usize = 0;
 
 fn main() {
-    let input = fs::read_to_string("./input.txt").unwrap();
+    //let input = fs::read_to_string("./input.txt").unwrap();
     let mut cave = Cave::new();
     let mut floor = 0;
     for line in input.lines() {
@@ -19,27 +17,30 @@ fn main() {
                 x: split_cordinate[0].parse::<usize>().unwrap() - OFFSETX,
                 y: split_cordinate[1].parse::<usize>().unwrap(),
             };
-            if pos.y +2 > floor {
-                floor = pos.y +2;
+            if pos.y + 2 > floor {
+                floor = pos.y + 2;
             }
             currentrock.push(pos);
         }
         cave.draw_rock(currentrock);
     }
-    let cave_floor = vec![Pos {y: floor, x: 0}, Pos {y: floor, x: W-1}];
-    cave.draw_rock(cave_floor);
     let mut total_sands = 1;
-        while cave.model_sand().is_some() {
-            total_sands += 1;
-            if total_sands > 50000 {break;}
-        }
-    
-    cave.grid_printer();
-    println!("Total sands: {} Floor {}", total_sands, floor);
-}
+    while cave.model_sand().is_some() {
+        total_sands += 1;
+    }
+    let pt1_res = total_sands - 1;
+    let cave_floor = vec![Pos { y: floor, x: 0 }, Pos { y: floor, x: W - 1 }];
+    cave.draw_rock(cave_floor);
+    while cave.model_sand().is_some() {
+        total_sands += 1;
+    }
 
-const TESTINPUT: &str = "498,4 -> 498,6 -> 496,6
-503,4 -> 502,4 -> 502,9 -> 494,9";
+    //cave.grid_printer();
+    println!(
+        "Total sands: pt1: {} pt2: {} Floor {}",
+        pt1_res, total_sands, floor
+    );
+}
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 struct Pos {
@@ -51,18 +52,6 @@ enum CaveMaterial {
     Air,
     Sand,
     Rock,
-}
-enum Dir {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-impl Dir {
-    pub fn iterator() -> Iter<'static, Dir> {
-        static DIRECTIONS: [Dir; 4] = [Dir::Up, Dir::Down, Dir::Left, Dir::Right];
-        DIRECTIONS.iter()
-    }
 }
 struct Cave {
     map: [[CaveMaterial; W]; H],
@@ -101,6 +90,7 @@ impl Cave {
             last_pos = Some(edge);
         }
     }
+    #[allow(dead_code)]
     fn grid_printer(&self) {
         for row in self.map {
             for material in row {
@@ -138,7 +128,6 @@ impl Cave {
         } else {
             None
         }
-        
     }
 }
 const SAND_START: Pos = Pos {
