@@ -68,7 +68,7 @@ fn main() {
                         pos.y,
                         (pos.x as u128 * 4000000 as u128) + pos.y as u128
                     );
-                    //exit(0);
+                    exit(0);
                 }
             }
         });
