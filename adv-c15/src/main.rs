@@ -1,6 +1,7 @@
 use rayon::prelude::*;
 #[allow(unused_variables)]
 use std::fs;
+use std::process::exit;
 fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let mut sensors: Vec<(Pos, Pos, usize)> = vec![];
@@ -29,10 +30,10 @@ fn main() {
             y: beacon[1].strip_prefix(" y=").unwrap().parse().unwrap(),
         };
         let sensor_distance: isize = sensor_pos.get_distance(&beacon_pos).try_into().unwrap();
-        println!(
-            "Sensor at {} {}, beacon distance {}",
-            sensor_pos.x, sensor_pos.y, sensor_distance,
-        );
+        //println!(
+        //    "Sensor at {} {}, beacon distance {}",
+        //    sensor_pos.x, sensor_pos.y, sensor_distance,
+        //);
         if min_x > sensor_pos.x - sensor_distance {
             min_x = sensor_pos.x - sensor_distance;
         }
@@ -48,49 +49,55 @@ fn main() {
         sensors.push((sensor_pos, beacon_pos, sensor_pos.get_distance(&beacon_pos)));
     }
     //println!("minx {} maxx {}", min_x, max_x);
-    let mut positions_covered = 0;
-    // (0..=40000).into_par_iter().for_each(|y| {
-    //     for x in 0..=4000000 {
-    //         let pos = Pos { x: x, y: y };
-    //         let mut pos_covered = false;
-    //         for (sensor, beacon, beacondistance) in &sensors {
-    //             let sensordistance = pos.get_distance(sensor);
-    //             if &sensordistance <= beacondistance {
-    //                 pos_covered = true;
-    //                 break;
-    //                 //println!("Pos:{} {} covered by sensor {} {}", pos.x, pos.y , sensor.x, sensor.y);
-    //             }
-    //             // if beacon == &pos {
-    //             //     pos_covered = false;
-    //             //     break;
-    //             // }
-    //         }
-    //         if !pos_covered {
-    //             println!("possible location at x:{} y:{}", pos.x, pos.y);
-    //             break;
-    //         }
-    //     }
+    //    let mut positions_covered = 0;
+    (3000000..=3500000).into_par_iter().for_each(|y| {
+        for x in 3000000..=4000000 {
+            let pos = Pos { x: x, y: y };
+            let mut pos_covered = false;
+            for (sensor, _beacon, beacondistance) in &sensors {
+                let sensordistance = pos.get_distance(sensor);
+                if &sensordistance <= beacondistance {
+                    pos_covered = true;
+                    break;
+                    //println!("Pos:{} {} covered by sensor {} {}", pos.x, pos.y , sensor.x, sensor.y);
+                }
+                // if beacon == &pos {
+                //     pos_covered = false;
+                //     break;
+                // }
+            }
+            if !pos_covered {
+                println!(
+                    "possible location at x:{} y:{}, result {}",
+                    pos.x,
+                    pos.y,
+                    (pos.x as u128 * 4000000 as u128) + pos.y as u128
+                );
+                //exit(0);
+            }
+        }
 
-    //     // if pos_covered {
-    //     //     positions_covered += 1;
-    //     //     //print!("#");
-    //     // } else {
-    //     //     //print!(".");
-    //     // }
-    // });
+        //     // if pos_covered {
+        //     //     positions_covered += 1;
+        //     //     //print!("#");
+        //     // } else {
+        //     //     //print!(".");
+        //     // }
+    });
     // &sensors
-        // .into_par_iter()
-        // .for_each(|(sensor, beacon, beacondistance)| {
-        //     let mut searchpos = Pos {
-        //         x: sensor.x,
-        //         y: sensor.y - isize::try_from(beacondistance).unwrap(),
-        //     };
-        //     let mut current_search_dir = SearchDir::Se;
+    // .into_par_iter()
+    // .for_each(|(sensor, beacon, beacondistance)| {
+    //     let mut searchpos = Pos {
+    //         x: sensor.x,
+    //         y: sensor.y - isize::try_from(beacondistance).unwrap(),
+    //     };
+    //     let mut current_search_dir = SearchDir::Se;
 
-        // });
-        println!("possible location at x:{} y:{}, result {}", 3292963, 3019123, (3292963 as u128 *4000000 as u128) +3019123 as u128); 
+    // });
+    //println!("possible location at x:{} y:{}, result {}", 3292963, 3019123, (3292963 as u128 *4000000 as u128) +3019123 as u128);
     //println!("pos covered: {}", positions_covered);
 }
+#[allow(dead_code)]
 enum SearchDir {
     Ne,
     Nw,
@@ -130,6 +137,7 @@ mod day_13_tests {
         assert_eq!(pos1.get_distance(pos2), 12);
     }
 }
+#[allow(dead_code)]
 const TESTINPUT: &str = "Sensor at x=2, y=18: closest beacon is at x=-2, y=15
 Sensor at x=9, y=16: closest beacon is at x=10, y=16
 Sensor at x=13, y=2: closest beacon is at x=15, y=3
