@@ -1,58 +1,94 @@
 use itertools::Itertools;
+use rayon::prelude::*;
 use std::collections::{HashMap, HashSet, VecDeque};
 #[allow(unused_variables)]
 use std::fs;
 use std::process::exit;
-
 fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
-    let valves_map = parse_input(TESTINPUT);
-    println!(
-        "steps to DD {}",
-        bfs_calculate_steps(
-            &valves_map,
-            usize::from_str_radix("AA", 36).unwrap(),
-            usize::from_str_radix("DD", 36).unwrap()
-        )
-    );
+    let valves_map = parse_input(&input);
     let mut working_valves = find_working_valves(&valves_map);
-    let mut path = vec![];
-    let mut time_left = 30;
-    let mut pos = usize::from_str_radix("AA", 36).unwrap();
-    while time_left > 0 {
-        let (next_move, _) = find_next_best_move(
+    let (mut path_you, mut path_elephant) = (vec![], vec![]);
+    let (mut time_left_you, mut time_left_elephant) = (26, 26);
+    let (mut pos_you, mut pos_elephant) = (
+        usize::from_str_radix("AA", 36).unwrap(),
+        usize::from_str_radix("AA", 36).unwrap(),
+    );
+    while time_left_you > 0 || time_left_elephant > 0 {
+        let (_, next_move_you, next_move_elephant) = find_next_best_move(
             &valves_map,
-            pos,
-            time_left,
+            (pos_you, pos_elephant),
+            (time_left_you, time_left_elephant),
             working_valves.clone().into_iter().collect(),
         );
-        path.push(next_move);
-        let next_move_steps = bfs_calculate_steps(&valves_map, pos, next_move);
-        if time_left < next_move_steps {
-            break;
+        path_you.push(next_move_you);
+        path_elephant.push(next_move_elephant);
+        let next_move_steps_you = bfs_calculate_steps(&valves_map, pos_you, next_move_you);
+        let next_move_steps_elephant =
+            bfs_calculate_steps(&valves_map, pos_elephant, next_move_elephant);
+        if !(time_left_you < next_move_steps_you) && next_move_you != 0 {
+            time_left_you -= next_move_steps_you;
+            pos_you = next_move_you;
+            working_valves.remove(&next_move_you);
+            println!(
+                "You move: {} steps {}",
+                valves_map.get(&next_move_you).unwrap().name,
+                next_move_steps_you
+            );
+        } else {
+            time_left_you = 0;
         }
-        time_left -= next_move_steps;
-        pos = next_move;
-        working_valves.remove(&next_move);
-        println!(
-            "Move: {} steps {}",
-            valves_map.get(&next_move).unwrap().name,
-            next_move_steps
-        );
+        if !(time_left_elephant < next_move_steps_elephant) && next_move_elephant != 0 {
+            pos_elephant = next_move_elephant;
+            working_valves.remove(&next_move_elephant);
+            println!(
+                "Elephant move: {} steps {}",
+                valves_map.get(&next_move_elephant).unwrap().name,
+                next_move_steps_elephant
+            );
+        } else {
+            time_left_elephant = 0;
+        }
     }
 
     println!(
         "total flow for path {}   {:?}",
         calculate_flow(
-            &path,
+            &path_you,
             usize::from_str_radix("AA", 36).unwrap(),
             &valves_map,
-            30
+            26
+        ) + calculate_flow(
+            &path_elephant,
+            usize::from_str_radix("AA", 36).unwrap(),
+            &valves_map,
+            26
         ),
-        path
+        path_you
     );
 }
 
+fn calculate_flow3(
+    valvelist: &Vec<&&usize>,
+    startpos: usize,
+    map: &HashMap<usize, Valve>,
+    time_left: usize,
+) -> usize {
+    let mut time = time_left;
+    let mut flow = 0;
+    let mut pos = startpos;
+    for valve in valvelist {
+        let traveltime = bfs_calculate_steps(map, pos, ***valve);
+        if time < traveltime {
+            break;
+        }
+        time -= traveltime;
+        pos = ***valve;
+        flow += time * map.get(&valve).unwrap().flow_rate;
+    }
+
+    flow
+}
 fn calculate_flow2(
     valvelist: &Vec<&usize>,
     startpos: usize,
@@ -71,6 +107,7 @@ fn calculate_flow2(
         pos = **valve;
         flow += time * map.get(&valve).unwrap().flow_rate;
     }
+
     flow
 }
 fn calculate_flow(
@@ -91,28 +128,63 @@ fn calculate_flow(
         pos = *valve;
         flow += time * map.get(&valve).unwrap().flow_rate;
     }
+
     flow
 }
 fn find_next_best_move(
     map: &HashMap<usize, Valve>,
-    pos: usize,
-    time_left: usize,
+    pos: (usize, usize),
+    time_left: (usize, usize),
     valves_left: Vec<usize>,
-) -> (usize, usize) {
-    let mut sulotions: Vec<(usize, usize)> = vec![];
-    let mut permut = 9;
-    if valves_left.len() <= permut {
-        permut = valves_left.len();
+) -> (usize, usize, usize) {
+    let mut res = (0, 0, 0);
+    let (pos_you, pos_elephant) = pos;
+    let (time_left_you, time_left_elephant) = time_left;
+    if valves_left.len() > 1 {
+        let compute_result = valves_left.clone().into_par_iter().map(|valve| {
+            let local_valves_left = valves_left.clone().retain(|&x| x != valve);
+            let mut sulotions: Vec<(usize, usize, usize)> = vec![];
+            let mut permut = 5;
+            if local_valves_left.len() <= permut * 2 {
+                permut = valves_left.len() / 2;
+            }
+            for path in valves_left.iter().permutations(permut) {
+                //print!(".");
+                let flow1 = calculate_flow2(&path, pos_you, map, time_left_you);
+                let mut flow2 = 0;
+                let valves_left_for_elephant: Vec<&usize> =
+                    valves_left.iter().filter(|x| !path.contains(x)).collect();
+                //println!("pathlists: {:?}  {:?}", path, valves_left_for_elephant);
+                let mut permut2 = permut;
+                let mut elepant_path = 0;
+                if valves_left_for_elephant.len() <= permut2 {
+                    permut2 = valves_left_for_elephant.len();
+                }
+
+                for path2 in valves_left_for_elephant
+                    .clone()
+                    .iter()
+                    .permutations(permut2)
+                {
+                    let flow_t = calculate_flow3(&path2, pos_elephant, map, time_left_elephant);
+                    if flow_t > flow2 {
+                        flow2 = flow_t;
+                        elepant_path = **path2[0];
+                    }
+                }
+                let mut you_path = 0;
+                if path.len() != 0 {
+                    you_path = *path[0];
+                }
+                sulotions.push((flow1 + flow2, you_path, elepant_path));
+                //println!("{:?}, {}", path, elepant_path);
+            }
+            sulotions.sort();
+            //println!("{:?}", sulotions);
+            sulotions.pop().unwrap()
+        });
     }
 
-    for path in valves_left.iter().permutations(permut) {
-        let possible_flow = calculate_flow2(&path, pos, map, time_left);
-        sulotions.push((*path[0], possible_flow));
-        //println!("{:?}, {}", path, possible_flow);
-    }
-    sulotions.sort();
-    let res = sulotions.pop().unwrap();
-    println!("{:?}", res);
     res
 }
 fn find_working_valves(map: &HashMap<usize, Valve>) -> HashSet<usize> {
