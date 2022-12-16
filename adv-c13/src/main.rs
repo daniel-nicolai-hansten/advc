@@ -1,9 +1,6 @@
-use std::clone;
-use std::collections::HashSet;
-use std::collections::VecDeque;
 #[allow(unused_variables)]
 use std::fs;
-use std::slice::Iter;
+
 fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let mut chars_recived: [Vec<PacketData>; 2] = [vec![], vec![]];
@@ -25,113 +22,14 @@ fn main() {
     //println!("{:?}", chars_recived[1]);
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct PacketData {
-    c: Option<u32>,
-    depth: usize,
-    array_place: u32,
-}
+
 enum Packet {
     Int(u32),
     List(Vec<Packet>),
 }
-fn parse_line_to_vec(line: &str) -> Vec<Packet> {
-    let mut depth = 0;
-    let mut empty_list = false;
-    let mut array_placement_list = [0; 64];
-    let mut ret = vec![];
-    for c in line.chars() {
-        match c {
-            '[' => {
-                empty_list = true;
-                depth += 1;
-                array_placement_list[depth] = 0;
-            }
-            ']' => {
-                if empty_list {
-                    ret.push(PacketData {
-                        c: None,
-                        depth,
-                        array_place: array_placement_list[depth],
-                    });
-                }
-                //array_place = 0;
-                depth -= 1;
-            }
-            ',' => array_placement_list[depth] += 1,
-            _ => {
-                ret.push(PacketData {
-                    c: Some(c.to_digit(16).unwrap()),
-                    depth,
-                    array_place: array_placement_list[depth],
-                });
-                empty_list = false;
-            }
-        }
-    }
-    ret
-}
-fn is_inorder(pkt0_l: &Vec<PacketData>, pkt1_l: &Vec<PacketData>) -> bool {
-    let mut inorder = None;
-    let mut i = 0;
-    'outer: loop {
-        if pkt0_l.len() == i || pkt1_l.len() == i {
-            if pkt0_l.len() < pkt1_l.len() {
-                inorder = Some(true);
-            } else if pkt0_l.len() > pkt1_l.len() {
-                inorder = Some(false);
-            }
-            break 'outer;
-        }
-        let mut pkt0 = pkt0_l[i].clone();
-        let mut pkt1 = pkt1_l[i].clone();
-        if pkt0.depth != pkt1.depth {
-            if (pkt0.depth > pkt1.depth) && pkt0.array_place == 0 {
-                // comparing int and array
-                pkt1.depth = pkt0.depth;
-                pkt1.array_place = 0;
-            } else if (pkt1.depth > pkt0.depth) && pkt1.array_place == 0 {
-                // comparing int and array
-                pkt0.depth = pkt1.depth;
-                pkt0.array_place = 0;
-            }
-        }
-        if pkt0 != pkt1 {
-            if pkt0.depth == pkt1.depth && pkt0.array_place == pkt1.array_place {
-                // only value diffrent
-                if pkt0.c < pkt1.c {
-                    inorder = Some(true);
-                    break 'outer;
-                } else if pkt0.c > pkt1.c {
-                    inorder = Some(false);
-                    break 'outer;
-                }
-            } else if pkt0.depth > pkt1.depth {
-                inorder = Some(false);
-                break 'outer;
-            } else if pkt1.depth > pkt0.depth {
-                inorder = Some(true);
-                break 'outer;
-            } else if pkt0.array_place == 0 && pkt1.array_place != 0 {
-                inorder = Some(true);
-                break 'outer;
-            } else if pkt1.array_place == 0 && pkt0.array_place != 0 {
-                inorder = Some(false);
-                break 'outer;
-            } else {
-                println!("Err parsing lines2:");
-                println!("{:?}", pkt0);
-                println!("{:?}", pkt1);
-            }
-        }
-        i += 1;
-    }
-    if !inorder.is_some() {
-        println!("Err parsing lines3:");
-        println!("{:?}", pkt0_l);
-        println!("{:?}", pkt1_l);
-    }
-    inorder.unwrap()
-}
+
+
+
 #[cfg(test)]
 mod day_13_tests {
     use super::*;

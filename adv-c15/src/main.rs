@@ -45,8 +45,8 @@ fn main() {
         sensors.push((sensor_pos, beacon_pos, sensor_pos.get_distance(&beacon_pos)));
     }
     if false {
-        (3000000..=3500000).into_par_iter().for_each(|y| {
-            for x in 3000000..=4000000 {
+        (0..=400).into_par_iter().for_each(|y| {
+            for x in 0..=4000000 {
                 let pos = Pos { x: x, y: y };
                 let mut pos_covered = false;
                 for (sensor, _beacon, beacondistance) in &sensors {

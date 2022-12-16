@@ -1,11 +1,11 @@
 #[allow(unused_variables)]
 use std::fs;
 const H: usize = 188;
-const W: usize = 1000;
-const OFFSETX: usize = 0;
+const W: usize = 500;
+const OFFSETX: usize = 250;
 
 fn main() {
-    //let input = fs::read_to_string("./input.txt").unwrap();
+    let input = fs::read_to_string("./input.txt").unwrap();
     let mut cave = Cave::new();
     let mut floor = 0;
     for line in input.lines() {

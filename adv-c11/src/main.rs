@@ -73,18 +73,19 @@ fn main() {
         }
     }
     let mod_product = monkeys.iter().map(|x| x.test_div).product::<u32>();
-    for _ in 0..10000 {
+    for cycle in 0..10000 {
+        println!("{}",cycle);
         for i in 0..monkeys.len() {
             while !monkeys[i].items.is_empty() {
                 let mut item = monkeys[i].items.pop_front().unwrap();
-                println!("item {}", item);
+                //println!("item {}", item);
                 monkeys[i].items_inspected += 1;
                 match &monkeys[i].operation {
                     MonkeyOperation::OldPlus => item = item + monkeys[i].operation_num as u128,
                     MonkeyOperation::OldMultiply => item = item * monkeys[i].operation_num as u128,
                     MonkeyOperation::OldMultiplyOld => item = item * item,
                 }
-                item = item % mod_product as u128;
+                //item = item % mod_product as u128;
                 if item % monkeys[i].test_div as u128 == 0 {
                     monkeys[monkeys[i].monkey_t].items.push_back(item);
                 } else {
