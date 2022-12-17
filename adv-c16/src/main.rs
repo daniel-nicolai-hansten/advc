@@ -10,7 +10,7 @@ fn main() {
     //println!("{:?}", valves_map);
     let mut working_valves = find_working_valves(&valves_map);
     let (mut path_you, mut path_elephant) = (vec![], vec![]);
-    let (mut time_left_you, mut time_left_elephant) = (26, 26);
+    let (mut time_left_you, mut time_left_elephant) = (27, 27);
     let (mut pos_you, mut pos_elephant) = (
         usize::from_str_radix("AA", 36).unwrap(),
         usize::from_str_radix("AA", 36).unwrap(),
@@ -152,7 +152,7 @@ fn find_next_best_move(
         //     .filter(|&x| x != valve)
         //     .collect();
         let mut sulotions: Vec<(usize, usize, usize)> = vec![];
-        let mut permut = 5;
+        let mut permut = 6;
         if valves_left.len() <= permut * 2 {
             permut = valves_left.len() / 2;
         }
@@ -258,9 +258,11 @@ fn parse_input(input: &str) -> HashMap<usize, Valve> {
     valves2
 }
 fn get_steps(map: &HashMap<usize, Valve>, start: usize, target: usize) -> usize {
-    let valve = map.get(&start);
-
-    0
+    let mut steps = 0;
+    if let Some(valve) = map.get(&start){
+        steps = valve.pathcost[get_valveid(target)];
+    }
+steps
 }
 fn bfs_calculate_steps(map: &HashMap<usize, Valve>, start: usize, target: usize) -> usize {
     let mut que = VecDeque::new();
