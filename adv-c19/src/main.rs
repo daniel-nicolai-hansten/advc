@@ -161,9 +161,9 @@ fn run_simulation(blueprint: &Blueprint) -> usize {
     while timer < 32 {
         timer += 1;
         //println!("{}", timer);
-        if workque.len() > 1000 {
+        if workque.len() > 900 {
             workque.make_contiguous().sort_by(|a, b| b.cmp(a));
-            workque.drain(1000..);
+            workque.drain(900..);
         }
         for _ in 0..workque.len() {
             let (_, mut context) = workque.pop_front().unwrap();
