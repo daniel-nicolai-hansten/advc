@@ -10,7 +10,7 @@ fn main() {
     }
     for sortingiter in 0..10 {
         let mut idx = 0;
-        println!("{}", sortingiter);
+        //println!("{}", sortingiter);
         while idx < LEN {
             let mut i = 0;
             while i < LEN {
@@ -29,7 +29,7 @@ fn main() {
             }
         }
     }
-    println!("Final: {:?}", cordinatefile2);
+    //println!("Final: {:?}", cordinatefile2);
     let mut nullpos = 0;
     for (pos, (num, _, _)) in cordinatefile2.iter().enumerate() {
         if *num == 0 {

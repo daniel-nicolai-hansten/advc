@@ -100,12 +100,7 @@ bfsque.push_back(block.clone());
         break 'bfs;
     }
 }
-// if is_potential_airpocket{
-//     let posxp = Pos{x: block.x + 1, y: block.y, z: block.z};
-//     if !lava.contains(posxp){
-//         airpocket = find_airpocket(posxp);
-//     }
-// }
+
 airpocket
 }
 
