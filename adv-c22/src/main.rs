@@ -9,11 +9,9 @@ fn main() {
     let input = &fs::read_to_string("./input.txt").unwrap();
     let mut visited = HashSet::new();
     let map = parse_map(input);
-    let (_, movelist) = parse_moves(MOVES_TEST).unwrap();
+    let (_, movelist) = parse_moves(MOVES).unwrap();
     //print!("");
     let mut currentpos = find_start(map);
-    currentpos.y = 132;
-    currentpos.x = 98;
     println!("x: {} y: {}", currentpos.x, currentpos.y);
     for moveop in movelist {
         //println!("x: {} y: {} {:?}", currentpos.x, currentpos.y, moveop);
@@ -116,63 +114,122 @@ impl Pos {
                     }
                 }
             }
-            if nextpos.y >= 50 && nextpos.y < 100 && nextpos.x < 50 {
+            if nextpos.y >= 50 && nextpos.y < 100 && nextpos.x < 50 && nextpos.dir == Dir::Left {
                 //side 3 to 5
-                print!("3-5");
                 nextpos.x = nextpos.y - 50;
                 nextpos.y = 100;
                 nextpos.changedir(Move::Left);
-            } else if nextpos.y >= 50 && nextpos.y < 100 && nextpos.x >= 100 {
+            } else if nextpos.y >= 50 && nextpos.y < 100 && nextpos.x < 50 && nextpos.dir == Dir::Up
+            {
+                //side 5 to 3
+                nextpos.y = nextpos.x + 50;
+                nextpos.x = 50;
+                nextpos.changedir(Move::Right);
+            } else if nextpos.y >= 50
+                && nextpos.y < 100
+                && nextpos.x >= 100
+                && nextpos.dir == Dir::Right
+            {
                 //side 3 to 2
-                print!("3-2");
                 nextpos.x = nextpos.y + 50;
                 nextpos.y = 49;
                 nextpos.changedir(Move::Left);
-            } else if nextpos.y >= 100 && nextpos.y < 150 && nextpos.x >= 100 {
+            } else if nextpos.y >= 50
+                && nextpos.y < 100
+                && nextpos.x >= 100
+                && nextpos.dir == Dir::Down
+            {
+                //side 2 to 3
+                nextpos.y = nextpos.x - 50;
+                nextpos.x = 99;
+                nextpos.changedir(Move::Right);
+            } else if nextpos.y >= 100
+                && nextpos.y < 150
+                && nextpos.x >= 100
+                && nextpos.x < 150
+                && nextpos.dir == Dir::Right
+            {
                 //side 4 to 2
-                print!("4-2");
                 nextpos.x = 149;
                 nextpos.y = 149 - nextpos.y;
                 nextpos.changedir(Move::Left);
                 nextpos.changedir(Move::Left);
-            } else if nextpos.y >= 150 && nextpos.x < 50 {
+            } else if nextpos.y >= 0
+                && nextpos.y < 50
+                && nextpos.x < 50
+                && nextpos.dir == Dir::Right
+            {
+                //side 2 to 4
+                nextpos.x = 99;
+                nextpos.y = 149 - nextpos.y;
+                nextpos.changedir(Move::Left);
+                nextpos.changedir(Move::Left);
+            } else if nextpos.y < 50 && nextpos.x < 50 && nextpos.dir == Dir::Down {
                 //side 6 to 2
-                print!("6-2");
                 nextpos.y = 0;
                 nextpos.x = nextpos.x + 100;
-            } else if nextpos.x >= 100 && nextpos.x < 150 && nextpos.y < 50 {
+            } else if nextpos.x >= 100
+                && nextpos.x < 150
+                && nextpos.y > 190
+                && nextpos.dir == Dir::Up
+            {
                 //side 2 to 6
-                print!("2-6");
-                nextpos.y = 200;
+                nextpos.y = 199;
                 nextpos.x = nextpos.x - 100;
-            } else if nextpos.y >= 200 && nextpos.x < 100 && nextpos.x >= 50 {
+            } else if nextpos.y >= 150
+                && nextpos.x < 100
+                && nextpos.x >= 50
+                && nextpos.dir == Dir::Down
+            {
                 //side 4 to 6
-                print!("4-6");
                 nextpos.y = nextpos.x + 100;
                 nextpos.x = 49;
                 nextpos.changedir(Move::Right);
-            } else if nextpos.x >= 50 && nextpos.y < 200 && nextpos.y >= 150 {
+            } else if nextpos.x >= 50
+                && nextpos.y < 200
+                && nextpos.y >= 150
+                && nextpos.dir == Dir::Right
+            {
                 //side 6 to 4
-                print!("6-4");
                 nextpos.x = nextpos.y - 100;
                 nextpos.y = 149;
                 nextpos.changedir(Move::Left);
-            } else if nextpos.y >= 100 && nextpos.y < 150 && nextpos.x > 100 {
+            } else if nextpos.x >= 50
+                && nextpos.y < 200
+                && nextpos.y >= 150
+                && nextpos.dir == Dir::Left
+            {
+                //side 6 to 1
+                nextpos.x = nextpos.y - 100;
+                nextpos.y = 0;
+                nextpos.changedir(Move::Left);
+            } else if nextpos.x >= 50
+                && nextpos.x < 100
+                && nextpos.y >= 150
+                && nextpos.dir == Dir::Up
+            {
+                //side 1 to 6
+                nextpos.y = nextpos.x + 100;
+                nextpos.x = 0;
+                nextpos.changedir(Move::Right);
+            } else if nextpos.y >= 100
+                && nextpos.y < 150
+                && nextpos.x > 100
+                && nextpos.dir == Dir::Left
+            {
                 //side 5 to 1
-                print!("5-1");
-                nextpos.y = 150 - nextpos.y;
+                nextpos.y = 149 - nextpos.y;
                 nextpos.x = 50;
                 nextpos.changedir(Move::Left);
                 nextpos.changedir(Move::Left);
-            } else if nextpos.x < 50 && nextpos.y < 50 {
+            } else if nextpos.x < 50 && nextpos.y < 50 && nextpos.dir == Dir::Left {
                 //side 1 to 5
-                print!("1-5");
+
                 nextpos.y = (50 - nextpos.y) + 99;
                 nextpos.x = 0;
                 nextpos.changedir(Move::Left);
                 nextpos.changedir(Move::Left);
             }
-            println!("at x:{}  y:{}", nextpos.x, nextpos.y);
             match map[nextpos.y][nextpos.x] {
                 Material::End => {
                     println!("outside map at x:{}  y:{}", nextpos.x, nextpos.y);
@@ -287,7 +344,7 @@ mod tests {
         let mut visited = HashSet::new();
         let map = parse_map(input);
         let startpos = Pos {
-            y: 15,
+            y: 1,
             x: 55,
             dir: Dir::Left,
         };
@@ -300,6 +357,139 @@ mod tests {
         curretpos.changedir(Move::Left);
         curretpos.move_steps(map, 10, &mut visited);
         curretpos.changedir(Move::Left);
+        grid_printer(map, visited);
+        assert_eq!(curretpos, startpos);
+    }
+    #[test]
+    fn test_3to5() {
+        let input = &fs::read_to_string("./input-test.txt").unwrap();
+        let mut visited = HashSet::new();
+        let map = parse_map(input);
+        let startpos = Pos {
+            y: 51,
+            x: 55,
+            dir: Dir::Left,
+        };
+        let mut curretpos = startpos;
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        grid_printer(map, visited);
+        assert_eq!(curretpos, startpos);
+    }
+    #[test]
+    fn test_6to4() {
+        let input = &fs::read_to_string("./input-test.txt").unwrap();
+        let mut visited = HashSet::new();
+        let map = parse_map(input);
+        let startpos = Pos {
+            y: 198,
+            x: 45,
+            dir: Dir::Right,
+        };
+        let mut curretpos = startpos;
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        grid_printer(map, visited);
+        assert_eq!(curretpos, startpos);
+    }
+    #[test]
+    fn test_6to1() {
+        let input = &fs::read_to_string("./input-test.txt").unwrap();
+        let mut visited = HashSet::new();
+        let map = parse_map(input);
+        let startpos = Pos {
+            y: 150,
+            x: 5,
+            dir: Dir::Left,
+        };
+        let mut curretpos = startpos;
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        grid_printer(map, visited);
+        assert_eq!(curretpos, startpos);
+    }
+    #[test]
+    fn test_6to2() {
+        let input = &fs::read_to_string("./input-test.txt").unwrap();
+        let mut visited = HashSet::new();
+        let map = parse_map(input);
+        let startpos = Pos {
+            y: 195,
+            x: 39,
+            dir: Dir::Down,
+        };
+        let mut curretpos = startpos;
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        grid_printer(map, visited);
+        assert_eq!(curretpos, startpos);
+    }
+    #[test]
+    fn test_2to3() {
+        let input = &fs::read_to_string("./input-test.txt").unwrap();
+        let mut visited = HashSet::new();
+        let map = parse_map(input);
+        let startpos = Pos {
+            y: 45,
+            x: 138,
+            dir: Dir::Down,
+        };
+        let mut curretpos = startpos;
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        grid_printer(map, visited);
+        assert_eq!(curretpos, startpos);
+    }
+    #[test]
+    fn test_2to4() {
+        let input = &fs::read_to_string("./input-test.txt").unwrap();
+        let mut visited = HashSet::new();
+        let map = parse_map(input);
+        let startpos = Pos {
+            y: 11,
+            x: 145,
+            dir: Dir::Right,
+        };
+        let mut curretpos = startpos;
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        curretpos.move_steps(map, 10, &mut visited);
+        curretpos.changedir(Move::Left);
+        grid_printer(map, visited);
         assert_eq!(curretpos, startpos);
     }
 }

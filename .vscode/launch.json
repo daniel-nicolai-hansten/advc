@@ -10,7 +10,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/adv-c22/target/debug/adv-c22",
+            "program": "${workspaceFolder}/adv-c22/target/debug/deps/adv_c22-da2e7deaabae12bf",
             "args": [],
             "cwd": "${workspaceFolder}/adv-c22"
         }
