@@ -18,7 +18,6 @@ fn main() {
                 Elf {
                     currentpos: nextmove.newpos,
                     newpos: nextmove.newpos,
-                    lastdir: dir,
                 },
             );
         }
@@ -91,70 +90,62 @@ fn find_next_moves(elfmap: &HashMap<Pos, Elf>, dir: Dir) -> HashMap<Pos, Elf> {
 }
 fn check_dir(map: &HashMap<Pos, Elf>, dir: Dir, currentpos: &Pos) -> bool {
     let mut res = false;
-    let nw = &Pos {
+    let nw = map.contains_key(&Pos {
         x: currentpos.x - 1,
         y: currentpos.y - 1,
-    };
-    let n = &Pos {
+    });
+    let n = map.contains_key(&Pos {
         x: currentpos.x,
         y: currentpos.y - 1,
-    };
-    let ne = &Pos {
+    });
+    let ne = map.contains_key(&Pos {
         x: currentpos.x + 1,
         y: currentpos.y - 1,
-    };
-    let sw = &Pos {
+    });
+    let sw = map.contains_key(&Pos {
         x: currentpos.x - 1,
         y: currentpos.y + 1,
-    };
-    let s = &Pos {
+    });
+    let s = map.contains_key(&Pos {
         x: currentpos.x,
         y: currentpos.y + 1,
-    };
-    let se = &Pos {
+    });
+    let se = map.contains_key(&Pos {
         x: currentpos.x + 1,
         y: currentpos.y + 1,
-    };
-    let e = &Pos {
+    });
+    let e = map.contains_key(&Pos {
         x: currentpos.x + 1,
         y: currentpos.y,
-    };
-    let w = &Pos {
+    });
+    let w = map.contains_key(&Pos {
         x: currentpos.x - 1,
         y: currentpos.y,
-    };
+    });
+    if !nw && !n && !ne && !w && !e && !sw && !s && !se {
+        return false;
+    }
     match dir {
         Dir::North => {
-            if !map.contains_key(nw) && !map.contains_key(n) && !map.contains_key(ne) {
+            if !nw && !n && !ne {
                 res = true;
             }
         }
         Dir::South => {
-            if !map.contains_key(sw) && !map.contains_key(s) && !map.contains_key(se) {
+            if !sw && !s && !se {
                 res = true;
             }
         }
         Dir::West => {
-            if !map.contains_key(nw) && !map.contains_key(w) && !map.contains_key(sw) {
+            if !nw && !w && !sw {
                 res = true;
             }
         }
         Dir::East => {
-            if !map.contains_key(ne) && !map.contains_key(e) && !map.contains_key(se) {
+            if !ne && !e && !se {
                 res = true;
             }
         }
-    }
-    if !map.contains_key(nw)
-        && !map.contains_key(n)
-        && !map.contains_key(ne)
-        && !map.contains_key(w)
-        && !map.contains_key(e)
-        && !map.contains_key(sw)
-        && !map.contains_key(s)
-        && !map.contains_key(se)
-    {
-        res = false;
     }
     res
 }
@@ -187,7 +178,6 @@ fn parse_map(input: &str) -> HashMap<Pos, Elf> {
                                 x: x as i32,
                                 y: y as i32,
                             },
-                            lastdir: Dir::East,
                         },
                     );
                 }
@@ -228,7 +218,6 @@ impl Pos {
 struct Elf {
     currentpos: Pos,
     newpos: Pos,
-    lastdir: Dir,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
@@ -265,12 +254,10 @@ mod tests {
         let elf1 = Elf {
             currentpos: Pos { x: 2, y: 0 },
             newpos: Pos { x: 0, y: 0 },
-            lastdir: Dir::North,
         };
         let elf2 = Elf {
             currentpos: Pos { x: 2, y: 2 },
             newpos: Pos { x: 0, y: 0 },
-            lastdir: Dir::East,
         };
         elfmap.insert(elf1.currentpos, elf1);
         elfmap.insert(elf2.currentpos, elf2);
