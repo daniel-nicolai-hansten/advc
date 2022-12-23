@@ -7,9 +7,9 @@ fn main() {
 }
 fn find_next_moves(elfmap: &HashMap<Pos, Elf>) -> HashMap<Pos, Elf> {
     let elfs = HashMap::new();
-    for (pos, elf) in elfmap.mut_iter() {
+    for (pos, elf) in elfmap{
         let mut dir = elf.lastdir;
-        elf.lastdir = dir.get_next();
+        //elf.lastdir = dir.get_next();
         for _ in 0..4 {
             dir = dir.get_next();
             if check_dir(elfmap, dir, &elf.currentpos){
