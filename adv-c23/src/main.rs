@@ -1,97 +1,160 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+};
 fn main() {
-    let elfmap = parse_map(TESTINPUT);
-    find_next_moves(&elfmap);
-    // calculate_next_moves
-    //Do next moves
+    let input = &fs::read_to_string("./input.txt").unwrap();
+    let mut elfmap = parse_map(input);
+    let mut dir = Dir::North;
+    let mut move_num = 0;
+    loop {
+        move_num += 1;
+        let nextmoves = find_next_moves(&elfmap, dir);
+        if nextmoves.is_empty() {
+            break;
+        }
+        for (_pos, nextmove) in nextmoves {
+            elfmap.remove(&nextmove.currentpos);
+            elfmap.insert(
+                nextmove.newpos,
+                Elf {
+                    currentpos: nextmove.newpos,
+                    newpos: nextmove.newpos,
+                    lastdir: dir,
+                },
+            );
+        }
+        //grid_printer(&elfmap);
+        dir = dir.get_next();
+    }
+    calculate_aera(&elfmap);
+    println!("movenum {}", move_num);
 }
-fn find_next_moves(elfmap: &HashMap<Pos, Elf>) -> HashMap<Pos, Elf> {
-    let elfs = HashMap::new();
-    for (pos, elf) in elfmap{
-        let mut dir = elf.lastdir;
+fn calculate_aera(map: &HashMap<Pos, Elf>) -> usize {
+    let (mut minx, mut maxx) = (0, 0);
+    let (mut miny, mut maxy) = (0, 0);
+    let mut number_of_elfs = 0;
+    for (pos, _elf) in map {
+        println!("elf: x:{} y:{}", pos.x, pos.y);
+        number_of_elfs += 1;
+        if pos.x < minx {
+            minx = pos.x
+        }
+        if pos.y < miny {
+            miny = pos.y
+        }
+        if pos.x > maxx {
+            maxx = pos.x
+        }
+        if pos.y > maxy {
+            maxy = pos.y
+        }
+    }
+
+    println!("X from {} to {}", minx, maxx);
+    println!("Y from {} to {}", miny, maxy);
+    let area = (1 + maxx - minx) * (1 + maxy - miny);
+    println!("aera: {}", area - number_of_elfs);
+    0
+}
+fn grid_printer(map: &HashMap<Pos, Elf>) {
+    for y in -2..10 {
+        for x in -2..10 {
+            if map.contains_key(&Pos { x, y }) {
+                print!("#");
+            } else {
+                print!(".")
+            }
+        }
+        println!();
+    }
+    println!();
+}
+fn find_next_moves(elfmap: &HashMap<Pos, Elf>, dir: Dir) -> HashMap<Pos, Elf> {
+    let mut next_moves = HashMap::new();
+    for (_pos, elf) in elfmap {
+        let mut dir = dir;
         //elf.lastdir = dir.get_next();
         for _ in 0..4 {
-            dir = dir.get_next();
-            if check_dir(elfmap, dir, &elf.currentpos){
-                println!("Can move {} {} {:?}", elf.currentpos.x, elf.currentpos.y, dir);
+            if check_dir(elfmap, dir, &elf.currentpos) {
+                let mut elfmove = elf.clone();
+                elfmove.newpos = elfmove.currentpos.step(dir);
+                if next_moves.insert(elfmove.newpos, elfmove).is_some() {
+                    next_moves.remove(&elfmove.newpos);
+                }
+                break;
             }
-
+            dir = dir.get_next();
         }
-
     }
-    elfs
+    next_moves
 }
 fn check_dir(map: &HashMap<Pos, Elf>, dir: Dir, currentpos: &Pos) -> bool {
     let mut res = false;
+    let nw = &Pos {
+        x: currentpos.x - 1,
+        y: currentpos.y - 1,
+    };
+    let n = &Pos {
+        x: currentpos.x,
+        y: currentpos.y - 1,
+    };
+    let ne = &Pos {
+        x: currentpos.x + 1,
+        y: currentpos.y - 1,
+    };
+    let sw = &Pos {
+        x: currentpos.x - 1,
+        y: currentpos.y + 1,
+    };
+    let s = &Pos {
+        x: currentpos.x,
+        y: currentpos.y + 1,
+    };
+    let se = &Pos {
+        x: currentpos.x + 1,
+        y: currentpos.y + 1,
+    };
+    let e = &Pos {
+        x: currentpos.x + 1,
+        y: currentpos.y,
+    };
+    let w = &Pos {
+        x: currentpos.x - 1,
+        y: currentpos.y,
+    };
     match dir {
         Dir::North => {
-            let nw = &Pos {
-                x: currentpos.x - 1,
-                y: currentpos.y - 1,
-            };
-            let n = &Pos {
-                x: currentpos.x,
-                y: currentpos.y - 1,
-            };
-            let ne = &Pos {
-                x: currentpos.x + 1,
-                y: currentpos.y - 1,
-            };
             if !map.contains_key(nw) && !map.contains_key(n) && !map.contains_key(ne) {
                 res = true;
             }
         }
         Dir::South => {
-            let sw = &Pos {
-                x: currentpos.x - 1,
-                y: currentpos.y + 1,
-            };
-            let s = &Pos {
-                x: currentpos.x,
-                y: currentpos.y + 1,
-            };
-            let se = &Pos {
-                x: currentpos.x + 1,
-                y: currentpos.y + 1,
-            };
             if !map.contains_key(sw) && !map.contains_key(s) && !map.contains_key(se) {
                 res = true;
             }
         }
         Dir::West => {
-            let nw = &Pos {
-                x: currentpos.x - 1,
-                y: currentpos.y - 1,
-            };
-            let w = &Pos {
-                x: currentpos.x - 1,
-                y: currentpos.y,
-            };
-            let sw = &Pos {
-                x: currentpos.x - 1,
-                y: currentpos.y + 1,
-            };
             if !map.contains_key(nw) && !map.contains_key(w) && !map.contains_key(sw) {
                 res = true;
             }
         }
         Dir::East => {
-            let ne = &Pos {
-                x: currentpos.x + 1,
-                y: currentpos.y - 1,
-            };
-            let e = &Pos {
-                x: currentpos.x + 1,
-                y: currentpos.y,
-            };
-            let se = &Pos {
-                x: currentpos.x + 1,
-                y: currentpos.y + 1,
-            };
             if !map.contains_key(ne) && !map.contains_key(e) && !map.contains_key(se) {
                 res = true;
             }
         }
+    }
+    if !map.contains_key(nw)
+        && !map.contains_key(n)
+        && !map.contains_key(ne)
+        && !map.contains_key(w)
+        && !map.contains_key(e)
+        && !map.contains_key(sw)
+        && !map.contains_key(s)
+        && !map.contains_key(se)
+    {
+        res = false;
     }
     res
 }
@@ -139,6 +202,28 @@ struct Pos {
     x: i32,
     y: i32,
 }
+impl Pos {
+    fn step(&self, dir: Dir) -> Pos {
+        match dir {
+            Dir::North => Pos {
+                x: self.x,
+                y: self.y - 1,
+            },
+            Dir::South => Pos {
+                x: self.x,
+                y: self.y + 1,
+            },
+            Dir::West => Pos {
+                x: self.x - 1,
+                y: self.y,
+            },
+            Dir::East => Pos {
+                x: self.x + 1,
+                y: self.y,
+            },
+        }
+    }
+}
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 struct Elf {
     currentpos: Pos,
@@ -171,3 +256,26 @@ const TESTINPUT: &str = "....#..
 ##.#.##
 .#..#..
 ";
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    #[test]
+    fn colision_detection() {
+        let mut elfmap = HashMap::new();
+        let elf1 = Elf {
+            currentpos: Pos { x: 2, y: 0 },
+            newpos: Pos { x: 0, y: 0 },
+            lastdir: Dir::North,
+        };
+        let elf2 = Elf {
+            currentpos: Pos { x: 2, y: 2 },
+            newpos: Pos { x: 0, y: 0 },
+            lastdir: Dir::East,
+        };
+        elfmap.insert(elf1.currentpos, elf1);
+        elfmap.insert(elf2.currentpos, elf2);
+        let next_moves = find_next_moves(&elfmap, Dir::North);
+        assert!(next_moves.is_empty());
+    }
+}
