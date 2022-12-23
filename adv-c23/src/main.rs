@@ -1,7 +1,5 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-};
+use rustc_hash::FxHashMap as HashMap;
+use std::fs;
 fn main() {
     let input = &fs::read_to_string("./input.txt").unwrap();
     let mut elfmap = parse_map(input);
@@ -26,16 +24,18 @@ fn main() {
         }
         //grid_printer(&elfmap);
         dir = dir.get_next();
+        if move_num == 10 {
+            calculate_aera(&elfmap);
+        }
     }
-    calculate_aera(&elfmap);
-    println!("movenum {}", move_num);
+    println!("pt2: {}", move_num);
 }
 fn calculate_aera(map: &HashMap<Pos, Elf>) -> usize {
     let (mut minx, mut maxx) = (0, 0);
     let (mut miny, mut maxy) = (0, 0);
     let mut number_of_elfs = 0;
     for (pos, _elf) in map {
-        println!("elf: x:{} y:{}", pos.x, pos.y);
+        //println!("elf: x:{} y:{}", pos.x, pos.y);
         number_of_elfs += 1;
         if pos.x < minx {
             minx = pos.x
@@ -51,10 +51,10 @@ fn calculate_aera(map: &HashMap<Pos, Elf>) -> usize {
         }
     }
 
-    println!("X from {} to {}", minx, maxx);
-    println!("Y from {} to {}", miny, maxy);
+    //println!("X from {} to {}", minx, maxx);
+    //println!("Y from {} to {}", miny, maxy);
     let area = (1 + maxx - minx) * (1 + maxy - miny);
-    println!("aera: {}", area - number_of_elfs);
+    println!("pt1: area: {}", area - number_of_elfs);
     0
 }
 fn grid_printer(map: &HashMap<Pos, Elf>) {
@@ -71,7 +71,7 @@ fn grid_printer(map: &HashMap<Pos, Elf>) {
     println!();
 }
 fn find_next_moves(elfmap: &HashMap<Pos, Elf>, dir: Dir) -> HashMap<Pos, Elf> {
-    let mut next_moves = HashMap::new();
+    let mut next_moves = HashMap::default();
     for (_pos, elf) in elfmap {
         let mut dir = dir;
         //elf.lastdir = dir.get_next();
@@ -159,7 +159,7 @@ fn check_dir(map: &HashMap<Pos, Elf>, dir: Dir, currentpos: &Pos) -> bool {
     res
 }
 fn parse_map(input: &str) -> HashMap<Pos, Elf> {
-    let mut map = HashMap::new();
+    let mut map = HashMap::default();
     let (mut max_x, mut max_y) = (0, 0);
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
@@ -197,7 +197,7 @@ fn parse_map(input: &str) -> HashMap<Pos, Elf> {
     }
     map
 }
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Eq)]
 struct Pos {
     x: i32,
     y: i32,
@@ -259,7 +259,6 @@ const TESTINPUT: &str = "....#..
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
     #[test]
     fn colision_detection() {
         let mut elfmap = HashMap::new();
