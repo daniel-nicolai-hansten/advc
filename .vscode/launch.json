@@ -6,13 +6,14 @@
     "configurations": [
 
 
+
         {
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/adv-c22/target/debug/deps/adv_c22-da2e7deaabae12bf",
+            "program": "${workspaceFolder}/adv-c24/target/debug/adv-c24",
             "args": [],
-            "cwd": "${workspaceFolder}/adv-c22"
+            "cwd": "${workspaceFolder}/adv-c24"
         }
     ]
 }
