@@ -11,7 +11,7 @@ fn main() {
     workque.push_back(Pos { x: 1, y: 0 });
     'bfs: loop {
         let blizzard_map = draw_blizzard(&map, &mut blizzards);
-        grid_printer(&blizzard_map);
+        //grid_printer(&blizzard_map);
         if workque.len() == 0 {
             panic!();
         } else if workque.len() > H * W {
@@ -37,8 +37,9 @@ fn main() {
     workque.clear();
     workque.push_back(Pos { x: W -2, y: H -1 });
     'bfs: loop {
+        steps += 1;
         let blizzard_map = draw_blizzard(&map, &mut blizzards);
-        grid_printer(&blizzard_map);
+        //grid_printer(&blizzard_map);
         if workque.len() == 0 {
             panic!();
         } else if workque.len() > H * W {
@@ -58,14 +59,15 @@ fn main() {
                 workque.push_back(nextpos);
             }
         }
-        steps += 1;
+        
     }
     println!("Steps: {}", steps);
     workque.clear();
     workque.push_back(Pos { x: 1, y: 0 });
     'bfs: loop {
+        steps += 1;
         let blizzard_map = draw_blizzard(&map, &mut blizzards);
-        grid_printer(&blizzard_map);
+        //grid_printer(&blizzard_map);
         if workque.len() == 0 {
             panic!();
         } else if workque.len() > H * W {
@@ -85,7 +87,6 @@ fn main() {
                 workque.push_back(nextpos);
             }
         }
-        steps += 1;
     }
     println!("Steps: {}", steps);
 }
