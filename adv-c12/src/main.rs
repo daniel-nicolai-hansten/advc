@@ -4,15 +4,15 @@ use std::collections::VecDeque;
 use std::fs;
 use std::slice::Iter;
 use std::time::{Duration, Instant};
-const H: usize = 6000;
-const W: usize = 6000;
+const H: usize = 41;
+const W: usize = 136;
 use std::thread;
 
 fn main() {
     let builder = thread::Builder::new().stack_size(256 * 1024 * 1024);
     let handler = builder
         .spawn(|| {
-            let input = fs::read_to_string("./linput.txt").unwrap();
+            let input = fs::read_to_string("./input.txt").unwrap();
             let mut map: [[u8; W]; H] = [[0; W]; H];
             let mut end_pos = Pos { x: 0, y: 0 };
             let mut start_pos = vec![];
@@ -41,16 +41,16 @@ fn main() {
             let start_pt1 = Instant::now();
             let ans_pt1 = bfs(map, start_pos2, end_pos);
             let mut list_moves: Vec<u32> = vec![];
-            let dur_pt1 = start_pt1.elapsed();
-            let start_pt2 = Instant::now();
+            //let dur_pt1 = start_pt1.elapsed();
+            //let start_pt2 = Instant::now();
             println!("{}", start_pos.len());
-            start_pos.into_par_iter().for_each(|pos| {
-                if let Some(steps) = bfs(map, pos, end_pos) {
-                    println!("{}", steps)
-                }
-            });
-            let dur_pt2 = start_pt2.elapsed();
-            println!("time1 {:?} time2 {:?}", dur_pt1, dur_pt2);
+            // start_pos.into_par_iter().for_each(|pos| {
+            //     if let Some(steps) = bfs(map, pos, end_pos) {
+            //         println!("{}", steps)
+            //     }
+            // });
+            // let dur_pt2 = start_pt2.elapsed();
+            //println!("time1 {:?} time2 {:?}", dur_pt1, dur_pt2);
             list_moves.sort();
             println!(
                 "pt1: {} pt2: ",
@@ -62,9 +62,9 @@ fn main() {
 
     handler.join().unwrap();
 
-    //let ten_millis = Duration::from_millis(10000);
+    // let ten_millis = Duration::from_millis(10000);
 
-    //thread::sleep(ten_millis);
+    // thread::sleep(ten_millis);
 }
 fn bfs(map: [[u8; W]; H], start: Pos, end: Pos) -> Option<usize> {
     let mut que = VecDeque::new();
@@ -74,6 +74,9 @@ fn bfs(map: [[u8; W]; H], start: Pos, end: Pos) -> Option<usize> {
     que.push_back(start);
     visited_map[start.y][start.x] = true;
     'outer: while !que.is_empty() {
+        // grid_printer(visited_map);
+        // let ten_millis = Duration::from_millis(500);
+        // thread::sleep(ten_millis);
         steps += 1;
         for _ in 0..que.len() {
             let current_node = que.pop_front().unwrap();
