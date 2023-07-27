@@ -2,8 +2,7 @@ use std::{fs, isize};
 fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let mut counters = [0; 5];
-    let mut nums = [0; 20];
-    let mut j = 0;
+    let mut nums = Vec::new();
     for line in TESTINPUT.lines() {
         let mut i = 0;
         for c in line.chars() {
@@ -14,12 +13,11 @@ fn main() {
             }
             i += 1;
         }
-        nums[j] = isize::from_str_radix(line, 2).unwrap();
-        j += 1;
+        nums.push(isize::from_str_radix(line, 2).unwrap());
     }
 
     println!("{:?}", counters);
-    //let filter =
+    //pt1
     let mut filternum = 0;
     {
         let mut bitpos = 4;
@@ -31,14 +29,23 @@ fn main() {
         }
         println!("filternum {:b}", filternum);
     }
-    for i in 0..4 {
-        for num in nums {
-            let filter = filternum | 0x1f << 5 - i;
-            if filter | num != 0 {
-                println!("filter {:b}", filter);
-            }
-            println!("{}", num);
-        }
+    // for i in 0..4 {
+    //     for num in nums {
+    //         let filter = filternum | 0x1f << 5 - i;
+    //         if filter | num != 0 {
+    //             println!("filter {:b}", filter);
+    //         }
+    //         println!("{}", num);
+    //     }
+    // }
+}
+
+fn calculate_bit_criteria(list: Vec<u32>, bitnum: u32) -> Vec<i32> {
+    if bitnum > 8 {
+        panic!
+    }
+    for i in list {
+        if i
     }
 }
 
