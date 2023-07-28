@@ -1,9 +1,10 @@
 use std::{fs, isize};
+
 fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
-    let mut counters = [0; 5];
+    let mut counters = [0; 12];
     let mut nums = Vec::new();
-    for line in TESTINPUT.lines() {
+    for line in input.lines() {
         let mut i = 0;
         for c in line.chars() {
             match c {
@@ -13,42 +14,54 @@ fn main() {
             }
             i += 1;
         }
-        nums.push(isize::from_str_radix(line, 2).unwrap());
+        nums.push(u32::from_str_radix(line, 2).unwrap());
     }
 
     println!("{:?}", counters);
-    //pt1
-    let mut filternum = 0;
-    {
-        let mut bitpos = 4;
-        for c in counters {
-            if c > 0 {
-                filternum |= 1 << bitpos;
-            }
-            bitpos -= 1;
+
+    let (mut oxygen_generator_rating, mut CO2_scrubber_rating) = (0,0);
+    let mut currentnums = nums.clone();
+    for i in 0..LEN {
+        if !calculate_bit_criteria(&currentnums, i) {
+            currentnums.retain(|x| *x & (1 << LEN -1 - i) == 0);
+        } else {
+            currentnums.retain(|x| *x & (1 << LEN -1 - i) != 0);
         }
-        println!("filternum {:b}", filternum);
+        if currentnums.len() == 1 {
+            oxygen_generator_rating = currentnums[0];
+            break;
+        }
     }
-    // for i in 0..4 {
-    //     for num in nums {
-    //         let filter = filternum | 0x1f << 5 - i;
-    //         if filter | num != 0 {
-    //             println!("filter {:b}", filter);
-    //         }
-    //         println!("{}", num);
-    //     }
-    // }
+    let mut currentnums = nums.clone();
+    for i in 0..LEN {
+        if !calculate_bit_criteria(&currentnums, i) {
+            currentnums.retain(|x| *x & (1 << LEN -1 - i) != 0);
+        } else {
+            currentnums.retain(|x| *x & (1 << LEN -1 - i) == 0);
+        }
+        if currentnums.len() == 1 {
+            CO2_scrubber_rating = currentnums[0];
+            break;
+        }
+    }
+    println!("{}  {}  {}", oxygen_generator_rating, CO2_scrubber_rating, oxygen_generator_rating * CO2_scrubber_rating );
 }
 
-fn calculate_bit_criteria(list: Vec<u32>, bitnum: u32) -> Vec<i32> {
-    if bitnum > 8 {
-        panic!
+fn calculate_bit_criteria(list: &Vec<u32>, bitnum: u32) -> bool {
+    let mut counters = 0;
+    if bitnum > 12 {
+        panic!();
     }
     for i in list {
-        if i
+        if i & (1 << LEN -1 - bitnum) == 0 {
+            counters -= 1;
+        } else {
+            counters += 1;
+        }
     }
+    counters >= 0
 }
-
+const LEN: u32 = 12;
 const TESTINPUT: &str = "00100
 11110
 10110
