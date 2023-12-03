@@ -31,18 +31,19 @@ fn main() {
         }
         println!("filternum {:b}", filternum);
     }
-    for i in 0..4 {
-        for num in nums {
-            let filter = filternum | 0x1f << 5 - i;
-            if filter | num != 0 {
-                println!("filter {:b}", filter);
-            }
-            println!("{}", num);
-        }
-    }
+    // for i in 0..4 {
+    //     for num in nums {
+    //         let filter = filternum | 0x1f << 5 - i;
+    //         if filter | num != 0 {
+    //             println!("filter {:b}", filter);
+    //         }
+    //         println!("{}", num);
+    //     }
+    // }
 }
 
-const TESTINPUT: &str = "00100
+const TESTINPUT: &str = 
+"00100
 11110
 10110
 10111
