@@ -69,6 +69,30 @@ fn main() {
     }
     println!("steps {steps}");
 }
+fn lcm(first: usize, second: usize) -> usize {
+    first * second / gcd(first, second)
+}
+
+fn gcd(first: usize, second: usize) -> usize {
+    let mut max = first;
+    let mut min = second;
+    if min > max {
+        let val = max;
+        max = min;
+        min = val;
+    }
+
+    loop {
+        let rem = max % min;
+        if rem == 0 {
+            return min;
+        }
+
+        max = min;
+        min = rem;
+    }
+}
+
 #[derive(Debug)]
 struct MapNode {
     name: u64,
