@@ -1,8 +1,7 @@
-use std::{cmp::max, fs};
+use itertools::*;
 
 fn main() {
-    // let input = TESTINPUT;
-    let input = fs::read_to_string("input.txt").unwrap();
+    let input = include_str!("../input.txt");
     let mut card_hands = vec![];
     for line in input.lines() {
         let splits: Vec<&str> = line.split_ascii_whitespace().collect();
@@ -29,173 +28,45 @@ struct CardHand {
     bid: usize,
 }
 impl CardHand {
-    // fn handtype(&self) -> HandTypes {
-    //     if self.cards
-    // }
     fn is_five_kind(&self) -> bool {
-        let mut num_typ1 = 0;
-        let mut num_typ2 = 0;
-        let mut jokers = 0;
-        let card1 = self.cards[0];
-        let mut card2 = None;
-        for card in &self.cards {
-            if card != &card1 && card != &'J' {
-                card2 = Some(card);
-            }
+        let jokers = self.jokers();
+        let card_sorted: Vec<usize> = self.cards_counted();
+        match card_sorted.get(0) {
+            Some(cards) => cards + jokers == 5,
+            None => jokers == 5,
         }
-        for card in &self.cards {
-            if card == &'J' {
-                jokers += 1;
-            } else if card == &card1 {
-                num_typ1 += 1;
-            } else if card == card2.unwrap() {
-                num_typ2 += 1;
-            }
-        }
-        max(num_typ1 + jokers, num_typ2 + jokers) == 5
     }
     fn is_four_kind(&self) -> bool {
-        let mut num_typ1 = 0;
-        let mut num_typ2 = 0;
-        let mut jokers = 0;
-        let mut card1 = None;
-        let mut card2 = None;
-        for card in &self.cards {
-            if card1.is_none() && card != &'J' {
-                card1 = Some(card);
-            } else if card1.is_some() && card != card1.unwrap() && card != &'J' {
-                card2 = Some(card);
-            }
+        let jokers = self.jokers();
+        let card_sorted: Vec<usize> = self.cards_counted();
+        match card_sorted.get(0) {
+            Some(cards) => cards + jokers == 4,
+            None => false,
         }
-        for card in &self.cards {
-            if card == &'J' {
-                jokers += 1;
-            } else if card == card1.unwrap() {
-                num_typ1 += 1;
-            } else if card == card2.unwrap() {
-                num_typ2 += 1;
-            }
-        }
-
-        max(num_typ1 + jokers, num_typ2 + jokers) == 4
     }
     fn is_tree_kind(&self) -> bool {
-        let mut num_typ1 = 0;
-        let mut num_typ2 = 0;
-        let mut num_typ3 = 0;
-        let mut jokers = 0;
-        let mut card1 = None;
-        let mut card2 = None;
-        let mut card3 = None;
-        for card in &self.cards {
-            if card1.is_none() && card != &'J' {
-                card1 = Some(card);
-            } else if card1.is_some() && card2.is_none() && card != card1.unwrap() && card != &'J' {
-                card2 = Some(card);
-            } else if card2.is_some()
-                && card3.is_none()
-                && card != card1.unwrap()
-                && card != card2.unwrap()
-                && card != &'J'
-            {
-                card3 = Some(card);
-            }
-        }
-        for card in &self.cards {
-            if card == &'J' {
-                jokers += 1;
-            } else if card == card1.unwrap() {
-                num_typ1 += 1;
-            } else if card == card2.unwrap() {
-                num_typ2 += 1;
-            } else if card == card3.unwrap() {
-                num_typ3 += 1;
-            }
-        }
-        let mut hand_sorted = vec![num_typ1, num_typ2, num_typ3];
-        hand_sorted.sort_unstable();
-
-        hand_sorted[2] + jokers == 3
+        let jokers = self.jokers();
+        let card_sorted: Vec<usize> = self.cards_counted();
+        card_sorted[0] + jokers == 3
     }
     fn is_house(&self) -> bool {
-        let mut num_typ1 = 0;
-        let mut num_typ2 = 0;
-        let mut jokers = 0;
-        let mut card1 = None;
-        let mut card2 = None;
-        for card in &self.cards {
-            if card1.is_none() && card != &'J' {
-                card1 = Some(card);
-            } else if card1.is_some() && card2.is_none() && card != card1.unwrap() && card != &'J' {
-                card2 = Some(card);
-            }
-        }
-        for card in &self.cards {
-            if card == &'J' {
-                jokers += 1;
-            } else if card == card1.unwrap() {
-                num_typ1 += 1;
-            } else if card == card2.unwrap() {
-                num_typ2 += 1;
-            }
-        }
-        let mut hand_sorted = vec![num_typ1, num_typ2];
-        hand_sorted.sort_unstable();
-
-        hand_sorted[0] + jokers == 2 && hand_sorted[1] == 3
-            || hand_sorted[0] == 2 && hand_sorted[1] + jokers == 3
+        let jokers = self.jokers();
+        let card_sorted: Vec<usize> = self.cards_counted();
+        card_sorted.len() >= 2 && card_sorted[0] + jokers == 3 && card_sorted[1] == 2
+            || card_sorted.len() >= 2 && card_sorted[0] == 3 && card_sorted[1] + jokers == 2
     }
+
     fn is_two_pair(&self) -> bool {
-        let mut num_typ1 = 0;
-        let mut num_typ2 = 0;
-        let mut num_typ3 = 0;
-        let card1 = self.cards[0];
-        let mut card2 = None;
-        let mut card3 = None;
-        let mut jokers = 0;
-        for card in &self.cards {
-            if card2.is_none() && card != &card1 && card != &'J' {
-                card2 = Some(card);
-            } else if card2.is_some()
-                && card3.is_none()
-                && card != &card1
-                && card != card2.unwrap()
-                && card != &'J'
-            {
-                card3 = Some(card);
-            }
-        }
-        for card in &self.cards {
-            if card == &'J' {
-                jokers += 1;
-            } else if card == &card1 {
-                num_typ1 += 1;
-            } else if card == card2.unwrap() {
-                num_typ2 += 1;
-            } else if card == card3.unwrap() {
-                num_typ3 += 1;
-            }
-        }
-        let mut hand_sorted = vec![num_typ1, num_typ2, num_typ3];
-        hand_sorted.sort_unstable();
-        hand_sorted[1] + jokers == 2 && hand_sorted[2] == 2
-            || hand_sorted[1] == 2 && hand_sorted[2] + jokers == 2
+        let jokers = self.jokers();
+        let card_sorted: Vec<usize> = self.cards_counted();
+        card_sorted.len() >= 2 && card_sorted[0] + jokers == 2 && card_sorted[1] == 2
+            || card_sorted.len() >= 2 && card_sorted[0] == 2 && card_sorted[1] + jokers == 2
     }
     fn is_pair(&self) -> bool {
         self.num_diffrent() == 4
     }
     fn num_diffrent(&self) -> usize {
-        let mut ord_cards = self.cards.clone();
-        ord_cards.sort_unstable();
-        let mut num_diffrent_card = 0;
-        let mut lastcard = None;
-        for card in ord_cards {
-            if !(Some(card) == lastcard || card == 'J') {
-                num_diffrent_card += 1;
-                lastcard = Some(card);
-            }
-        }
-        num_diffrent_card
+        self.cards_counted().len()
     }
     fn hand_type(&self) -> HandTypes {
         if self.is_five_kind() {
@@ -214,7 +85,22 @@ impl CardHand {
             HandTypes::HighCard
         }
     }
+    fn jokers(&self) -> usize {
+        self.cards.iter().filter(|c| **c == 'J').count()
+    }
+    fn cards_counted(&self) -> Vec<usize> {
+        self.cards
+            .iter()
+            .filter(|c| **c != 'J')
+            .counts()
+            .iter()
+            .map(|(_c, u)| *u)
+            .sorted()
+            .rev()
+            .collect()
+    }
 }
+
 impl Ord for CardHand {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if self.hand_type() != other.hand_type() {

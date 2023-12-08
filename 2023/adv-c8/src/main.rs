@@ -1,25 +1,23 @@
-use std::{fs, vec};
-
+use std::time::Instant;
+use std::vec;
 fn main() {
     // let input = TESTINPUT;
-    let input = fs::read_to_string("input.txt").unwrap();
+    let now = Instant::now();
+    let input = include_str!("../input.txt");
     let mut parsestate = 0;
-    let mut rl_input = "";
+    let mut rl_input = vec![];
     let mut starts = vec![];
     let mut ends = vec![];
     let mut maps = vec![];
     for line in input.lines() {
         match parsestate {
             0 => {
-                rl_input = line;
+                rl_input = line.chars().collect();
                 parsestate += 1;
             }
             _ => {
                 if line.len() > 2 {
                     let chars: Vec<char> = line.chars().collect();
-                    if chars[2] == 'Z' {
-                        println!("{line}");
-                    }
                     let splits: Vec<&str> = line.split(" = ").collect();
                     let name = u64::from_str_radix(splits[0], 36).unwrap();
                     let splits: Vec<&str> = splits[1]
@@ -39,41 +37,47 @@ fn main() {
         }
     }
     maps.sort_unstable_by(|a, b| a.name.cmp(&b.name));
-    let mut current_poses = starts;
+    let p1 = find_steps(
+        &maps,
+        &rl_input,
+        u64::from_str_radix("AAA", 36).unwrap(),
+        &vec![u64::from_str_radix("ZZZ", 36).unwrap()],
+    );
+    println!("p1: {} {:.2?}", p1, now.elapsed());
+    let mut stepvec = vec![];
+    for start in &starts {
+        stepvec.push(find_steps(&maps, &rl_input, *start, &ends));
+    }
+    let p2 = stepvec.into_iter().reduce(|acc, x| lcm(acc, x)).unwrap();
+    println!("p2: {} {:.2?}", p2, now.elapsed());
+    
+}
+fn find_steps(maps: &Vec<MapNode>, rl_input: &Vec<char>, start: u64, ends: &Vec<u64>) -> u64 {
     let mut steps = 0;
+    let mut current_pos = start;
     'outer: loop {
-        for c in rl_input.chars() {
-            let mut num_at_target = 0;
-            'inner: for pos in &current_poses {
-                if ends.iter().find(|x| x == &pos).is_some() {
-                    num_at_target += 1;
-                } else {
-                    break 'inner;
-                }
-            }
-            if num_at_target == current_poses.len() {
+        for c in rl_input {
+            if ends.contains(&current_pos) {
                 break 'outer;
             }
-            for current_pos in current_poses.iter_mut() {
-                let idx = maps.binary_search_by(|a| a.name.cmp(&current_pos)).unwrap();
-                let current_node = &maps[idx];
-                // println!("{current_node:?}");
-                match c {
-                    'R' => *current_pos = current_node.right,
-                    'L' => *current_pos = current_node.left,
-                    _ => (),
-                }
-            }
             steps += 1;
+            let idx = maps.binary_search_by(|a| a.name.cmp(&current_pos)).unwrap();
+            let current_node = &maps[idx];
+            match c {
+                'R' => current_pos = current_node.right,
+                'L' => current_pos = current_node.left,
+                _ => (),
+            }
         }
     }
-    println!("steps {steps}");
+    steps
 }
-fn lcm(first: usize, second: usize) -> usize {
+
+fn lcm(first: u64, second: u64) -> u64 {
     first * second / gcd(first, second)
 }
 
-fn gcd(first: usize, second: usize) -> usize {
+fn gcd(first: u64, second: u64) -> u64 {
     let mut max = first;
     let mut min = second;
     if min > max {
