@@ -33,6 +33,7 @@ fn main() {
         }
         steps += 1;
     }
+    steps += 1;
     println!("Steps: {}", steps);
     workque.clear();
     workque.push_back(Pos { x: W -2, y: H -1 });
@@ -62,6 +63,7 @@ fn main() {
         
     }
     println!("Steps: {}", steps);
+    steps += 1;
     workque.clear();
     workque.push_back(Pos { x: 1, y: 0 });
     'bfs: loop {
