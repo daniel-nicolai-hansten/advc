@@ -1,14 +1,23 @@
 use core::cmp::{max, min};
 fn main() {
     let input = include_str!("../input.txt");
-    let stars = parse_input(input);
+    let stars_p1 = parse_input(input, 2);
     let mut distances = 0;
     for star in &stars {
-        let star_result = star.star_distances(&stars);
+        let star_result = star_p1.star_distances(&stars);
         distances += star_result.iter().sum::<usize>();
     }
     distances = distances / 2;
-    println!("{distances}");
+    println!("p1: {distances}");
+
+    let stars_p2 = parse_input(input, 1000000);
+    let mut distances = 0;
+    for star in &stars {
+        let star_result = star_p2.star_distances(&stars);
+        distances += star_result.iter().sum::<usize>();
+    }
+    distances = distances / 2;
+    println!("p2: {distances}");
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Hash, Clone, Copy)]
@@ -33,7 +42,7 @@ impl Pos {
     }
 }
 
-fn parse_input(input: &str) -> Vec<Pos> {
+fn parse_input(input: &str, driftval: usize) -> Vec<Pos> {
     let mut ret = vec![];
     let mut drift = 0;
     let mut max_x = 0;
@@ -53,7 +62,7 @@ fn parse_input(input: &str) -> Vec<Pos> {
             }
         }
         if !stars {
-            drift += 1000000 - 1;
+            drift += driftval - 1;
         }
     }
     let mut ret2 = vec![];
@@ -70,7 +79,7 @@ fn parse_input(input: &str) -> Vec<Pos> {
             }
         }
         if !stars {
-            drift += 1000000 - 1;
+            drift += driftval - 1;
         }
     }
     ret2
