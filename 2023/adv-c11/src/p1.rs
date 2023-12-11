@@ -128,7 +128,7 @@ mod tests {
 #...#.....";
     #[test]
     fn it_works() {
-        let stars = parse_input(TESTINPUT);
+        let stars = parse_input(TESTINPUT, 100);
         let mut distances = 0;
         let mut pairs = 0;
         for star in &stars {

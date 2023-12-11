@@ -3,8 +3,8 @@ fn main() {
     let input = include_str!("../input.txt");
     let stars_p1 = parse_input(input, 2);
     let mut distances = 0;
-    for star in &stars {
-        let star_result = star_p1.star_distances(&stars);
+    for star in &stars_p1 {
+        let star_result = star.star_distances(&stars_p1);
         distances += star_result.iter().sum::<usize>();
     }
     distances = distances / 2;
@@ -12,8 +12,8 @@ fn main() {
 
     let stars_p2 = parse_input(input, 1000000);
     let mut distances = 0;
-    for star in &stars {
-        let star_result = star_p2.star_distances(&stars);
+    for star in &stars_p2 {
+        let star_result = star.star_distances(&stars_p2);
         distances += star_result.iter().sum::<usize>();
     }
     distances = distances / 2;
@@ -45,12 +45,11 @@ impl Pos {
 fn parse_input(input: &str, driftval: usize) -> Vec<Pos> {
     let mut ret = vec![];
     let mut drift = 0;
-    let mut max_x = 0;
-    let mut max_y = 0;
+    let (mut max_x, mut max_y) = (0, 0);
     for (y, ln) in input.lines().enumerate() {
         let line = ln.trim_start();
-        max_y = max(y, max_y);
         let mut stars = false;
+        max_y = max(y, max_y);
         for (x, c) in line.chars().enumerate() {
             max_x = max(x, max_x);
             match c {
@@ -65,22 +64,25 @@ fn parse_input(input: &str, driftval: usize) -> Vec<Pos> {
             drift += driftval - 1;
         }
     }
-    let mut ret2 = vec![];
+
+    let driftv = driftval -1;
+    let mut last_x = 0;
     let mut drift = 0;
+    let mut drift_l = |x| {
+        if x > last_x + 1 {
+            drift += driftv * (x - last_x - 1)
+        }
+        last_x = x;
+        drift
+    };
+    let mut ret2 = vec![];
+    
     for x in 0..=max_x {
-        let mut stars = false;
-        for star in &ret {
-            if star.x == x {
-                stars = true;
-                ret2.push(Pos {
-                    x: star.x + drift,
-                    y: star.y,
-                });
-            }
-        }
-        if !stars {
-            drift += driftval - 1;
-        }
+        let mut currentstars: Vec<Pos> = ret.iter().filter(|star| star.x == x).map(|star: &Pos| Pos {
+            x: star.x + drift_l(star.x),
+            y: star.y,
+        }).collect();
+        ret2.append(&mut currentstars);
     }
     ret2
 }
@@ -102,17 +104,14 @@ mod tests {
 #...#.....";
     #[test]
     fn it_works() {
-        let stars = parse_input(TESTINPUT);
+        let stars = parse_input(TESTINPUT, 100);
         let mut distances = 0;
-        let mut pairs = 0;
         for star in &stars {
-            println!("{star:?}");
             let star_result = star.star_distances(&stars);
-            pairs += star_result.len();
             distances += star_result.iter().sum::<usize>();
         }
         distances = distances / 2;
-        println!("{distances} {pairs}");
+        assert_eq!(distances, 8410)
     }
     #[test]
     fn test_distance() {

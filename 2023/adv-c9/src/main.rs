@@ -20,7 +20,7 @@ fn main() {
 fn predict(values: &[i32], dir: Dir) -> i32 {
     let diffs: Vec<i32> = values.windows(2).map(|v| v[1] - v[0]).collect();
     let allzeros = !values.iter().fold(false, |acc, x| acc || *x != 0);
-    match (allzeros, dir) {¨
+    match (allzeros, dir) {
         (true, _) => 0,
         (false, Dir::Fwd) => values.last().unwrap() + predict(&diffs, dir),
         (false, Dir::Rev) => values.first().unwrap() - predict(&diffs, dir),
