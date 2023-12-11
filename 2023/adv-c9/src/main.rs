@@ -16,12 +16,14 @@ fn main() {
         .fold(0, |acc, v| acc + predict(v, Dir::Rev));
     println!("Pt1: {p1} Pt2: {p2}");
 }
+
 fn predict(values: &[i32], dir: Dir) -> i32 {
     let diffs: Vec<i32> = values.windows(2).map(|v| v[1] - v[0]).collect();
-    match (values.iter().fold(false, |acc, x| acc || *x != 0), dir) {
-        (true, Dir::Fwd) => values.last().unwrap() + predict(&diffs, dir),
-        (true, Dir::Rev) => values.first().unwrap() - predict(&diffs, dir),
-        (false, _) => 0,
+    let allzeros = !values.iter().fold(false, |acc, x| acc || *x != 0);
+    match (allzeros, dir) {
+        (false, Dir::Fwd) => values.last().unwrap() + predict(&diffs, dir),
+        (false, Dir::Rev) => values.first().unwrap() - predict(&diffs, dir),
+        (true, _) => 0,
     }
 }
 
