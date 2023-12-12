@@ -1,4 +1,5 @@
 use core::cmp::{max, min};
+use itertools::Itertools;
 fn main() {
     let input = include_str!("../input.txt");
     let stars_p1 = parse_input(input, 2);
@@ -43,49 +44,53 @@ impl Pos {
 }
 
 fn parse_input(input: &str, driftval: usize) -> Vec<Pos> {
-    let mut ret = vec![];
-    let mut drift = 0;
-    let (mut max_x, mut max_y) = (0, 0);
-    input.lines().enumerate().map(|(y, line)| line.chars().enumerate().filter(|(_x, c)| c == '#').map(|(x,_c)| ))
-    for (y, ln) in input.lines().enumerate() {
-        let line = ln.trim_start();
-        let mut stars = false;
-        max_y = max(y, max_y);
-        for (x, c) in line.chars().enumerate() {
-            max_x = max(x, max_x);
-            match c {
-                '#' => {
-                    stars = true;
-                    ret.push(Pos { y: y + drift, x });
-                }
-                _ => (),
+    let driftval = driftval - 1;
+    let (rets, (xs, ys)): (Vec<Pos>, (Vec<usize>, Vec<usize>)) = input
+        .lines()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .filter(|(_, c)| *c == '#')
+                .map(move |(x, _)| (Pos { x, y }, (x, y)))
+        })
+        .unzip();
+    let (mut xdrift, mut xlast) = (0, 0);
+    let xs: Vec<(usize, usize)> = xs
+        .iter()
+        .sorted()
+        .dedup()
+        .map(|x: &usize| {
+            if *x > xlast + 1 {
+                xdrift += driftval * (x - xlast - 1)
             }
-        }
-        if !stars {
-            drift += driftval - 1;
-        }
-    }
-
-    let driftv = driftval -1;
-    let mut last_x = 0;
-    let mut drift = 0;
-    let mut drift_l = |x| {
-        if x > last_x + 1 {
-            drift += driftv * (x - last_x - 1)
-        }
-        last_x = x;
-        drift
-    };
-    let mut ret2 = vec![];
-    
-    for x in 0..=max_x {
-        let mut currentstars: Vec<Pos> = ret.iter().filter(|star| star.x == x).map(|star: &Pos| Pos {
-            x: star.x + drift_l(star.x),
-            y: star.y,
-        }).collect();
-        ret2.append(&mut currentstars);
-    }
-    ret2
+            xlast = *x;
+            (*x, xdrift + x)
+        })
+        .collect();
+    let (mut ydrift, mut ylast) = (0, 0);
+    let ys: Vec<(usize, usize)> = ys
+        .iter()
+        .sorted()
+        .dedup()
+        .map(|y: &usize| {
+            if *y > ylast + 1 {
+                ydrift += driftval * (y - ylast - 1)
+            }
+            ylast = *y;
+            (*y, ydrift + y)
+        })
+        .collect();
+    rets.iter()
+        .map(|pos: &Pos| {
+            let (_, x_drift) = xs.iter().find(|(x, _)| *x == pos.x).unwrap();
+            let (_, y_drift) = ys.iter().find(|(y, _)| *y == pos.y).unwrap();
+            Pos {
+                x: *x_drift,
+                y: *y_drift,
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -94,11 +99,11 @@ mod tests {
 
     use super::*;
     const TESTINPUT: &str = "...#......
-  .......#..
-  #.........
-  ..........
-  ......#...
-  .#........
+.......#..
+#.........
+..........
+......#...
+.#........
 .........#
 ..........
 .......#..
@@ -108,6 +113,7 @@ mod tests {
         let stars = parse_input(TESTINPUT, 100);
         let mut distances = 0;
         for star in &stars {
+            println!("{star:?}");
             let star_result = star.star_distances(&stars);
             distances += star_result.iter().sum::<usize>();
         }
