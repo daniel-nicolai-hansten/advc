@@ -3,14 +3,14 @@ fn main() {
     let springs = parse_input(TESTINPUT);
     let mut totsum = 0;
     for (spring, nums) in &springs {
-        let possible_springs = generate_variance(&spring);
-        let mut sum = 0;
-        for spring in possible_springs {
-            if cmp_springs(&spring, nums) {
-                sum += 1;
-            }
-        }
-        println!("Spring: {spring:?}  sum: {sum}");
+        let possible_springs = generate_variance(&spring, &nums);
+        let mut sum = possible_springs.len();
+        // for spring in possible_springs {
+        //     if cmp_springs(&spring, nums) {
+        //         sum += 1;
+        //     }
+        // }
+        println!(" {spring:?} sum: {sum}");
         totsum += sum;
     }
     println!("sum: {totsum}");
@@ -25,12 +25,22 @@ fn parse_input(input: &str) -> Vec<(Vec<Spring>, Vec<u32>)> {
     };
     for line in input.lines() {
         let splits: Vec<&str> = line.trim_start().split_ascii_whitespace().collect();
-        let gearstates = splits[0].chars().map(gearsplit).collect();
-        let nums = splits[1]
+        let mut gearstates: Vec<Spring> = splits[0].chars().map(gearsplit).collect();
+        let nums: Vec<u32> = splits[1]
             .split(",")
             .map(|x| x.parse::<u32>().unwrap())
             .collect();
-        ret.push((gearstates, nums));
+        let mut gearstates_p2 = vec![];
+        let mut nums_p2 = vec![];
+        for i in 0..5 {
+            let mut new_gearstates = gearstates.clone();
+            if i < 4 {
+                new_gearstates.push(Spring::Unknown);
+            }
+            gearstates_p2.append(&mut new_gearstates);
+            nums_p2.append(&mut nums.clone());
+        }
+        ret.push((gearstates_p2, nums_p2));
     }
     ret
 }
@@ -57,7 +67,7 @@ fn cmp_springs(springlist: &[Spring], nums: &[u32]) -> bool {
     nums == springs
 }
 
-fn generate_variance(springs: &[Spring]) -> Vec<Vec<Spring>> {
+fn generate_variance(springs: &[Spring], nums: &[u32]) -> Vec<Vec<Spring>> {
     let unknowns = springs.iter().filter(|s| **s == Spring::Unknown).count();
     let two: u32 = 2;
     let combinations = two.pow(unknowns as u32);
@@ -80,16 +90,14 @@ fn generate_variance(springs: &[Spring]) -> Vec<Vec<Spring>> {
             }
         };
         let fixed_springs: Vec<Spring> = springs.iter().map(replace_unknown).collect();
-        ret.push(fixed_springs);
+        if cmp_springs(&fixed_springs, nums) {
+            ret.push(fixed_springs);
+        }
     }
     ret
 }
 const TESTINPUT: &str = "???.### 1,1,3
-.??..??...?##. 1,1,3
-?#?#?#?#?#?#?#? 1,3,1,6
-????.#...#... 4,1,1
-????.######..#####. 1,6,5
-?###???????? 3,2,1";
+.??..??...?##. 1,1,3";
 #[cfg(test)]
 mod tests {
     use super::*;
