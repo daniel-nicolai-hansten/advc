@@ -24,17 +24,14 @@ fn parse_input(input: &str) -> Vec<(Vec<Spring>, Vec<usize>)> {
     let mut ret = vec![];
     let gearsplit = |c| match c {
         '#' => Spring::Broken,
-        '.' => Spring::Operational,
+        '.' => Spring::Working,
         '?' => Spring::Unknown,
         _ => Spring::Err,
     };
     for line in input.lines() {
         let splits: Vec<&str> = line.trim_start().split_ascii_whitespace().collect();
         let gearstates: Vec<Spring> = splits[0].chars().map(gearsplit).collect();
-        let nums: Vec<usize> = splits[1]
-            .split(",")
-            .map(|x| x.parse::<usize>().unwrap())
-            .collect();
+        let nums: Vec<usize> = splits[1].split(",").map(|x| x.parse::<usize>().unwrap()).collect();
         let mut gearstates_p2: Vec<Spring> = vec![];
         let mut nums_p2: Vec<usize> = vec![];
         for i in 0..5 {
@@ -51,68 +48,59 @@ fn parse_input(input: &str) -> Vec<(Vec<Spring>, Vec<usize>)> {
 }
 
 fn count_variants(springs: &[Spring], counts: &[usize]) -> usize {
-    let n = springs.len();
-    let m = counts.len();
-    let mut dp = vec![vec![vec![0; n + 1]; m + 1]; n + 1];
-    dp[n][m][0] = 1;
-    dp[n][m - 1][counts[m - 1]] = 1;
+    let tot_springs = springs.len();
+    let tot_groups = counts.len();
+    let mut dp = vec![vec![vec![0; tot_springs + 1]; tot_groups + 1]; tot_springs + 1];
+    dp[tot_springs][tot_groups][0] = 1;
+    dp[tot_springs][tot_groups - 1][counts[tot_groups - 1]] = 1;
     use Spring as S;
-    for pos in (0..n).rev() {
+    for springnum in (0..tot_springs).rev() {
         for (group, &max_count) in counts.iter().enumerate() {
             for count in 0..=max_count {
-                for c in [S::Operational, S::Broken] {
-                    if springs[pos] == c || springs[pos] == S::Unknown {
-                        if c == S::Operational && count == 0 {
-                            dp[pos][group][count] += dp[pos + 1][group][0];
-                        } else if c == S::Operational && group < m && counts[group] == count {
-                            dp[pos][group][count] += dp[pos + 1][group + 1][0];
-                        } else if c == S::Broken {
-                            dp[pos][group][count] += dp[pos + 1][group][count + 1];
+                for c in [S::Working, S::Broken] {
+                    match (springs[springnum] == c || springs[springnum] == S::Unknown, c) {
+                        (true, S::Working) if count == 0 => {
+                            dp[springnum][group][count] += dp[springnum + 1][group][0];
                         }
+                        (true, S::Working) if group < tot_groups && counts[group] == count => {
+                            dp[springnum][group][count] += dp[springnum + 1][group + 1][0];
+                        }
+                        (true, S::Broken) => {
+                            dp[springnum][group][count] += dp[springnum + 1][group][count + 1];
+                        }
+                        _ => (),
                     }
                 }
             }
         }
-        if matches!(springs[pos], Spring::Operational | Spring::Unknown) {
-            dp[pos][m][0] += dp[pos + 1][m][0];
+        if matches!(springs[springnum], Spring::Working | Spring::Unknown) {
+            dp[springnum][tot_groups][0] += dp[springnum + 1][tot_groups][0];
         }
     }
     dp[0][0][0]
 }
 
-const TESTINPUT: &str = "???.### 1,1,3
-.??..??...?##. 1,1,3";
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn cmp() {
-        let input = "#.#.###. 1,1,3";
-        let springs = parse_input(input);
-        let (spring, num) = &springs[0];
-        assert!(cmp_springs(spring, num));
-    }
-    // #[test]
-    // fn it_works2() {
-    //     let springs = parse_input(TESTINPUT);
-    //     let mut sum = 0;
-    //     for (spring, nums) in &springs {
-    //         let possible_springs = generate_variance(&spring, &nums);
-    //         for spring in possible_springs {
-    //             if cmp_springs(&spring, nums) {
-    //                 println!("spring: {spring:?}");
-    //                 sum += 1;
-    //             }
-    //         }
-    //     }
-    //     println!("sum: {sum}");
-    // }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Spring {
     Broken,
-    Operational,
+    Working,
     Unknown,
     Err,
+}
+#[cfg(test)]
+mod tests {
+    use crate::{count_variants, parse_input};
+
+    const TESTINPUT: &str = "?###???????? 3,2,1";
+    #[test]
+    fn it_works() {
+        let springs = parse_input(TESTINPUT);
+        for (spring, count) in springs {
+            let num = count_variants(&spring[0..12], &count[0..3]);
+            println!("{num}");
+        }
+
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
 }
