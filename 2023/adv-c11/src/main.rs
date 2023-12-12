@@ -46,6 +46,7 @@ fn parse_input(input: &str, driftval: usize) -> Vec<Pos> {
     let mut ret = vec![];
     let mut drift = 0;
     let (mut max_x, mut max_y) = (0, 0);
+    input.lines().enumerate().map(|(y, line)| line.chars().enumerate().filter(|(_x, c)| c == '#').map(|(x,_c)| ))
     for (y, ln) in input.lines().enumerate() {
         let line = ln.trim_start();
         let mut stars = false;
