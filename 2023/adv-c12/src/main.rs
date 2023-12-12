@@ -1,16 +1,19 @@
+use rayon::prelude::*;
+use std::sync::mpsc;
 fn main() {
     let input = include_str!("../input.txt");
-    let springs = parse_input(TESTINPUT);
-    let mut totsum = 0;
-    for (spring, nums) in &springs {
+    let springs = parse_input(input);
+    let (tx, rx) = mpsc::channel();
+    springs.par_iter().for_each(|(spring, nums)| {
+        let tx = tx.clone();
         let possible_springs = generate_variance(&spring, &nums);
-        let mut sum = possible_springs.len();
-        // for spring in possible_springs {
-        //     if cmp_springs(&spring, nums) {
-        //         sum += 1;
-        //     }
-        // }
-        println!(" {spring:?} sum: {sum}");
+        let sum = possible_springs;
+        println!(".");
+        let _ = tx.send(sum);
+    });
+    drop(tx);
+    let mut totsum = 0;
+    while let Ok(sum) = rx.recv() {
         totsum += sum;
     }
     println!("sum: {totsum}");
@@ -25,13 +28,13 @@ fn parse_input(input: &str) -> Vec<(Vec<Spring>, Vec<u32>)> {
     };
     for line in input.lines() {
         let splits: Vec<&str> = line.trim_start().split_ascii_whitespace().collect();
-        let mut gearstates: Vec<Spring> = splits[0].chars().map(gearsplit).collect();
+        let gearstates: Vec<Spring> = splits[0].chars().map(gearsplit).collect();
         let nums: Vec<u32> = splits[1]
             .split(",")
             .map(|x| x.parse::<u32>().unwrap())
             .collect();
-        let mut gearstates_p2 = vec![];
-        let mut nums_p2 = vec![];
+        let mut gearstates_p2: Vec<Spring> = vec![];
+        let mut nums_p2: Vec<u32> = vec![];
         for i in 0..5 {
             let mut new_gearstates = gearstates.clone();
             if i < 4 {
@@ -67,13 +70,13 @@ fn cmp_springs(springlist: &[Spring], nums: &[u32]) -> bool {
     nums == springs
 }
 
-fn generate_variance(springs: &[Spring], nums: &[u32]) -> Vec<Vec<Spring>> {
+fn generate_variance(springs: &[Spring], nums: &[u32]) -> usize {
     let unknowns = springs.iter().filter(|s| **s == Spring::Unknown).count();
     let two: u32 = 2;
     let combinations = two.pow(unknowns as u32);
-    let mut ret = vec![];
+    let mut ret = 0;
 
-    for i in 0..=combinations {
+    for i in 0..combinations {
         let mut unknows_ret = 0;
         let replace_unknown = |s: &Spring| {
             let mask = 1 << unknows_ret;
@@ -91,7 +94,7 @@ fn generate_variance(springs: &[Spring], nums: &[u32]) -> Vec<Vec<Spring>> {
         };
         let fixed_springs: Vec<Spring> = springs.iter().map(replace_unknown).collect();
         if cmp_springs(&fixed_springs, nums) {
-            ret.push(fixed_springs);
+            ret += 1;
         }
     }
     ret
@@ -114,7 +117,7 @@ mod tests {
         let springs = parse_input(TESTINPUT);
         let mut sum = 0;
         for (spring, nums) in &springs {
-            let possible_springs = generate_variance(&spring);
+            let possible_springs = generate_variance(&spring, &nums);
             for spring in possible_springs {
                 if cmp_springs(&spring, nums) {
                     println!("spring: {spring:?}");
