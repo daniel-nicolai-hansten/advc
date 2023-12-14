@@ -16,51 +16,50 @@ fn main() {
 
 fn p1(rockmap: Vec<Vec<Rock>>) -> usize {
     let mut rock = rockmap;
-    move_rocks(&mut rock, Dir::North);
-    calculate_load(&rock)
+    let mut rocklist = get_rocklist(&rock);
+    move_rocks(&mut rock, Dir::North, &mut rocklist);
+    calculate_load(&rocklist, rock.len())
 }
 
 fn p2(rockmap: Vec<Vec<Rock>>) -> usize {
     let mut loadarr = vec![];
     let mut rocks2 = rockmap;
     let mut last_i = 0;
-    let mut patternsize = 0;
+    let end = 1000_000_000;
+    let mut patternsize = end;
     let mut leftover = 0;
-    'outer: for i in 0..1000 {
+    let mut rocklist = get_rocklist(&rocks2);
+    'outer: for i in 1..1000 {
         last_i = i;
         for dir in [Dir::North, Dir::West, Dir::South, Dir::East] {
-            move_rocks(&mut rocks2, dir);
+            move_rocks(&mut rocks2, dir, &mut rocklist);
         }
-        let load = calculate_load(&rocks2);
+        let load = calculate_load(&rocklist, rocks2.len());
         loadarr.push(load);
-        if loadarr.len() > 200 {
-            for windowsize in 3..50 {
-                let start1 = loadarr.len() - (windowsize * 2);
+
+        if loadarr.len() > 64 {
+            for windowsize in 3..32 {
+                let start1 = loadarr.len() - windowsize;
                 let end1 = start1 + windowsize;
-                let start2 = end1;
-                let end2 = start2 + windowsize;
+                let end2 = start1;
+                let start2 = start1 - windowsize;
                 let (arr1, arr2) = (&loadarr[start1..end1], &loadarr[start2..end2]);
                 if arr1 == arr2 {
-                    println!("pattern detected at {start1} of {windowsize}");
+                    println!("pattern detected at {start2} of {windowsize}");
                     patternsize = windowsize;
-                    leftover = (i - start1) % patternsize;
+                    leftover = (loadarr.len() - start1) % patternsize;
                     break 'outer;
                 }
             }
         }
     }
-    let end = 1000_000_000;
+
     let rest = end - last_i + leftover;
     let cycles_left = rest % patternsize;
-    let mut load_end = 0;
-    for _ in 0..cycles_left {
-        for dir in [Dir::North, Dir::West, Dir::South, Dir::East] {
-            move_rocks(&mut rocks2, dir);
-        }
-        let load = calculate_load(&rocks2);
-        load_end = load;
-    }
-    load_end
+    let arridx = loadarr.len() - (patternsize - cycles_left + 1);
+    println!("{:?}   {}", &loadarr[arridx..], cycles_left);
+
+    loadarr[arridx]
 }
 
 fn parse_input(input: &str) -> Vec<Vec<Rock>> {
@@ -79,87 +78,95 @@ fn parse_input(input: &str) -> Vec<Vec<Rock>> {
     }
     ret
 }
+fn get_rocklist(rockmap: &[Vec<Rock>]) -> Vec<(usize, usize)> {
+    rockmap
+        .iter()
+        .enumerate()
+        .map(|(y, rocks)| {
+            rocks
+                .iter()
+                .enumerate()
+                .filter(|(_, rock)| **rock == Rock::Round)
+                .map(move |(x, _rock)| (y, x))
+        })
+        .flatten()
+        .collect()
+}
 
-fn move_rocks(rockmap: &mut [Vec<Rock>], dir: Dir) {
+fn move_rocks(rockmap: &mut [Vec<Rock>], dir: Dir, rocklist: &mut [(usize, usize)]) {
     let max_x = rockmap[0].len();
     let max_y = rockmap.len();
-    loop {
-        let mut rockmoved = false;
-        for y in 0..rockmap.len() {
-            for x in 0..rockmap[0].len() {
-                if rockmap[y][x] == Rock::Round {
-                    let (y2, x2) = match dir {
-                        Dir::North => {
-                            let mut y2 = y;
-                            'inner: for y3 in (0..y).rev() {
-                                if rockmap[y3][x] != Rock::None {
-                                    break 'inner;
-                                }
-                                y2 = y3;
-                            }
-                            (y2, x)
-                        }
-                        Dir::South => {
-                            let mut y2 = y;
-                            'inner: for y3 in (y + 1)..max_y {
-                                if rockmap[y3][x] != Rock::None {
-                                    break 'inner;
-                                }
-                                y2 = y3;
-                            }
-                            (y2, x)
-                        }
-                        Dir::East => {
-                            let mut x2 = x;
-                            'inner: for x3 in (x + 1)..max_x {
-                                if rockmap[y][x3] != Rock::None {
-                                    break 'inner;
-                                }
-                                x2 = x3;
-                            }
-                            (y, x2)
-                        }
-                        Dir::West => {
-                            let mut x2 = x;
-                            'inner: for x3 in (0..x).rev() {
-                                if rockmap[y][x3] != Rock::None {
-                                    break 'inner;
-                                }
-                                x2 = x3;
-                            }
-                            (y, x2)
-                        }
-                    };
-                    match (rockmap[y][x], rockmap[y2][x2]) {
-                        (Rock::Round, Rock::None) => {
-                            rockmap[y][x] = Rock::None;
-                            rockmap[y2][x2] = Rock::Round;
-                            rockmoved = true;
-                        }
-                        _ => (),
+    let mut rockfunc = |yref: &mut usize, xref: &mut usize| {
+        let (y, x) = (*yref, *xref);
+        let mut rockmoved = 0;
+        let (y2, x2) = match dir {
+            Dir::North => {
+                let mut y2 = y;
+                'inner: for y3 in (0..y).rev() {
+                    if rockmap[y3][x] != Rock::None {
+                        break 'inner;
                     }
+                    y2 = y3;
                 }
+                (y2, x)
             }
+            Dir::South => {
+                let mut y2 = y;
+                'inner: for y3 in (y + 1)..max_y {
+                    if rockmap[y3][x] != Rock::None {
+                        break 'inner;
+                    }
+                    y2 = y3;
+                }
+                (y2, x)
+            }
+            Dir::East => {
+                let mut x2 = x;
+                'inner: for x3 in (x + 1)..max_x {
+                    if rockmap[y][x3] != Rock::None {
+                        break 'inner;
+                    }
+                    x2 = x3;
+                }
+                (y, x2)
+            }
+            Dir::West => {
+                let mut x2 = x;
+                'inner: for x3 in (0..x).rev() {
+                    if rockmap[y][x3] != Rock::None {
+                        break 'inner;
+                    }
+                    x2 = x3;
+                }
+                (y, x2)
+            }
+        };
+        match (rockmap[y][x], rockmap[y2][x2]) {
+            (Rock::Round, Rock::None) => {
+                rockmap[y][x] = Rock::None;
+                rockmap[y2][x2] = Rock::Round;
+                (*yref, *xref) = (y2, x2);
+                rockmoved += 1;
+            }
+            _ => (),
         }
-        if !rockmoved {
-            break;
+
+        rockmoved
+    };
+
+    'outer: loop {
+        let mut moved = 0;
+        for (rocky, rockx) in rocklist.iter_mut() {
+            moved += rockfunc(rocky, rockx);
+        }
+        if moved == 0 {
+            break 'outer;
         }
     }
 }
 
-fn calculate_load(rockmap: &[Vec<Rock>]) -> usize {
-    let mut ret = 0;
-    let south = rockmap.len();
-    for (y, row) in rockmap.iter().enumerate() {
-        for c in row {
-            match c {
-                Rock::Cube => (),
-                Rock::Round => ret += south - y,
-                Rock::None => (),
-            };
-        }
-    }
-    ret
+fn calculate_load(rocks: &[(usize, usize)], south: usize) -> usize {
+    rocks.iter().fold(0, |acc, (y, _x)| acc + south - y)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
