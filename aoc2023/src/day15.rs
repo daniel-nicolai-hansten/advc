@@ -1,6 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 #[aoc_generator(day15)]
-fn parse(input: &str) ->Vec<String> {
+fn parse(input: &str) -> Vec<String> {
     input.split(",").map(|s| s.to_string()).collect()
 }
 
@@ -25,7 +25,11 @@ fn part2(input: &[String]) -> u32 {
                 boxes[boxnum].push((label[0], num));
             }
         } else {
-            if let Some((n, _)) = boxes[boxnum].iter().enumerate().find(|(_n, (s, _))| *s == label[0]) {
+            if let Some((n, _)) = boxes[boxnum]
+                .iter()
+                .enumerate()
+                .find(|(_n, (s, _))| *s == label[0])
+            {
                 boxes[boxnum].remove(n);
             }
         }
@@ -33,7 +37,11 @@ fn part2(input: &[String]) -> u32 {
     let mut sum = 0;
     for (n, boxn) in boxes.iter().enumerate() {
         let boxval = n + 1;
-        let sumadd: usize = boxn.iter().enumerate().map(|(idx, (_, val))| boxval * (idx +1) * val).sum();
+        let sumadd: usize = boxn
+            .iter()
+            .enumerate()
+            .map(|(idx, (_, val))| boxval * (idx + 1) * val)
+            .sum();
         sum += sumadd;
     }
     sum as u32
@@ -49,19 +57,17 @@ fn find_hash(instr: &str) -> usize {
     currval
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn part1_example() {
-        assert_eq!(part1(&parse("<EXAMPLE>")), "<RESULT>");
-    }
+    // #[test]
+    // fn part1_example() {
+    //     assert_eq!(part1(&parse("<EXAMPLE>")), "<RESULT>");
+    // }
 
-    #[test]
-    fn part2_example() {
-        assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
-    }
+    // #[test]
+    // fn part2_example() {
+    //     assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
+    // }
 }

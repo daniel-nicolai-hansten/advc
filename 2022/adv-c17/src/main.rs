@@ -1,6 +1,6 @@
 //use rayon::prelude::*;
 use std::collections::{HashMap, HashSet, VecDeque};
-const H: usize = 500000;
+const H: usize = 5000;
 const W: usize = 7;
 #[allow(unused_variables)]
 use std::fs;
@@ -36,12 +36,12 @@ fn main() {
             top_rock.y = top_lastrock;
         }
         
-        if total_rocks >= 250000{
+        if total_rocks >= 2023{
             break 'rock;
         }
     }
     //grid_printer(grid);
-    println!("secs:: {}", (1000000000000 as u64/ 500000) /60/60/24);
+    // println!("secs:: {}", (1000000000000 as u64/ 500000) /60/60/24);
     println!("Toppos: {} ", H - top_rock.y);
 }
 
@@ -52,14 +52,14 @@ enum GasDir {
 }
 
 struct InfiniteGrid {
-    grid: [[bool;7 ]; 1024],
+    grid: [[bool;7 ]; 64]
     head: u64,
     tail: u64,
 
 }
 impl InfiniteGrid {
     fn new() -> InfiniteGrid {
-        InfiniteGrid { grid: [[false;7];1024] }
+        InfiniteGrid { grid: [[false;7];64], head: 0, tail: 63 }
     }
     fn prune(&mut self) {
         

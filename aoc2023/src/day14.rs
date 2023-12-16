@@ -67,7 +67,6 @@ fn part2(rockmap: &[Vec<Rock>]) -> usize {
     loadarr[arridx]
 }
 
-
 fn get_rocklist(rockmap: &[Vec<Rock>]) -> Vec<(usize, usize)> {
     rockmap
         .iter()
@@ -173,8 +172,6 @@ enum Dir {
     South,
     East,
 }
-
-
 
 #[cfg(test)]
 mod tests {
