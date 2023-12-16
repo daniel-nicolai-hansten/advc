@@ -69,7 +69,9 @@ fn beam_energy(input: &[Vec<char>], startpos: Pos, startdir: Dir) -> usize {
     while !beamque.is_empty() {
         let (mut pos, mut dir) = beamque.pop_front().unwrap();
         'inner: loop {
-            visited.insert((pos, dir));
+            if !visited.insert((pos, dir)) {
+                break 'inner;
+            }
             match input[pos.y][pos.x] {
                 '/' => {
                     dir = match dir {
@@ -126,12 +128,13 @@ fn beam_energy(input: &[Vec<char>], startpos: Pos, startdir: Dir) -> usize {
                     break 'inner;
                 }
             }
-            visited.insert((pos, dir));
         }
     }
 
     visited.iter().map(|(p, _d)|p).sorted().dedup().fold(0, |acc, _p| acc +1 )
 }
+
+#[allow(dead_code)]
 fn map_printer(map: &[Vec<char>], visited: &HashSet<(Pos, Dir)>) {
     for (y, line) in map.iter().enumerate() {
         for (x, c ) in line.iter().enumerate()  {
@@ -161,8 +164,8 @@ fn part2(input: &[Vec<char>]) -> usize {
         wq.push((Pos {y, x:0}, Dir::Right));
         wq.push((Pos {y, x: max_x -1}, Dir::Left));
     }
-    let res: Vec<usize> = wq.par_iter().map(|(p, d)| beam_energy(input, *p, *d)).collect();
-    *res.iter().max().unwrap()
+    let res = wq.par_iter().map(|(p, d)| beam_energy(input, *p, *d)).max()
+   res
 }
 
 #[cfg(test)]
