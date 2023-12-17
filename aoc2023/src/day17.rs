@@ -78,7 +78,7 @@ fn valid_next_move(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32) -> Vec<(
             ret.push((pos.south(), Dir::South, 0));
         }
     }
-    if dircount <= 3 {
+    if dircount <= 5 {
         match dir {
             Dir::North => ret.push((pos.north(), dir, dircount + 1)),
             Dir::South => ret.push((pos.south(), dir, dircount + 1)),
