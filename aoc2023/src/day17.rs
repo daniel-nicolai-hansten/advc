@@ -3,7 +3,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use rustc_hash::FxHashMap;
 use std::{
     cmp::{max, min, Reverse},
-    collections::{BinaryHeap, VecDeque},
+    collections::BinaryHeap,
 };
 #[aoc_generator(day17)]
 fn parse(input: &str) -> Vec<Vec<u32>> {
@@ -47,7 +47,7 @@ fn find_route(map: &[Vec<u32>], part: Part) -> u32 {
             if qpri > currentbest {
                 break;
             }
-            for (p, newdir, dircnt) in valid_next_move(map, dir, pos, dircount, Part::P2) {
+            for (p, newdir, dircnt) in valid_next_move(map, dir, pos, dircount, part) {
                 let new_heatloss = heatloss + map[p.y][p.x];
                 if p == end && dircnt >= min_dircount {
                     currentbest = min(currentbest, new_heatloss);
@@ -96,34 +96,6 @@ fn valid_next_move(
         }
     }
     if dircount < max_dircount {
-        match dir {
-            Dir::North => ret.push((pos.north(), dir, dircount + 1)),
-            Dir::South => ret.push((pos.south(), dir, dircount + 1)),
-            Dir::West => ret.push((pos.west(), dir, dircount + 1)),
-            Dir::East => ret.push((pos.east(), dir, dircount + 1)),
-        }
-    }
-    ret.into_iter()
-        .filter(|(p, _, _)| *p != pos && p.x < max_x && p.y < max_y)
-        .collect()
-}
-fn valid_next_move_p2(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32) -> Vec<(Pos, Dir, u32)> {
-    let mut ret = vec![];
-    let max_y = map.len();
-    let max_x = map[0].len();
-    if dircount >= 4 {
-        match dir {
-            Dir::North | Dir::South => {
-                ret.push((pos.east(), Dir::East, 1));
-                ret.push((pos.west(), Dir::West, 1));
-            }
-            Dir::West | Dir::East => {
-                ret.push((pos.north(), Dir::North, 1));
-                ret.push((pos.south(), Dir::South, 1));
-            }
-        }
-    }
-    if dircount < 10 {
         match dir {
             Dir::North => ret.push((pos.north(), dir, dircount + 1)),
             Dir::South => ret.push((pos.south(), dir, dircount + 1)),
