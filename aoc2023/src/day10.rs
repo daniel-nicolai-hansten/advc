@@ -1,31 +1,29 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-#[aoc_generator(day10)]
-fn parse(input: &str) -> String {
-    todo!()
-}
-
-#[aoc(day10, part1)]
-fn part1(input: &str) -> String {
-    todo!()
-}
-
-#[aoc(day10, part2)]
-fn part2(input: &str) -> String {
-    todo!()
-}
-
 use std::collections::{HashSet, VecDeque};
 use std::slice::Iter;
 
-// fn main() {
-//     let input = include_str!("../input.txt");
-//     let (map, start) = parse_input(input);
-//     let (steps, visited) = bfs(&map, start);
-//     draw_map(&map, &visited);
-//     println!("p1: {steps}");
-//     let p2 = find_internal(&map, &visited);
-//     println!("p2: {p2}");
-// }
+#[aoc_generator(day10)]
+fn parse(input: &str) -> String {
+    input.to_owned()
+}
+
+#[aoc(day10, part1)]
+fn part1(input: &str) -> usize {
+    let (map, start) = parse_input(input);
+    let (steps, _visited) = bfs(&map, start);
+    steps
+}
+
+#[aoc(day10, part2)]
+fn part2(input: &str) -> usize {
+    let (map, start) = parse_input(input);
+    let (_steps, visited) = bfs(&map, start);
+    // draw_map(&map, &visited);
+    find_internal(&map, &visited)
+}
+
+
+
 fn find_internal(map: &[Vec<char>], visited: &HashSet<Pos>) -> usize {
     let mut tot = 0;
     let hr_map = high_res_map(&map, &visited);
@@ -267,6 +265,7 @@ impl Dir {
         DIRECTIONS.iter()
     }
 }
+#[allow(dead_code)]
 fn draw_map(map: &[Vec<char>], visited: &HashSet<Pos>) {
     for (y, line) in map.iter().enumerate() {
         for (x, row) in line.iter().enumerate() {
@@ -288,24 +287,25 @@ fn draw_map(map: &[Vec<char>], visited: &HashSet<Pos>) {
 mod tests {
 
     use super::*;
-    const TESTINPUT: &str = ".F----7F7F7F7F-7....
-.|F--7||||||||FJ....
-.||.FJ||||||||L7....
-FJL7L7LJLJ||LJ.L-7..
-L--J.L7...LJS7F-7L7.
-....F-J..F7FJ|L7L7L7
-....L7.F7||L7|.L7L7|
-.....|FJLJ|FJ|F7|.LJ
-....FJL-7.||.||||...
-....L---J.LJ.LJLJ...";
+    const TESTINPUT: &str = 
+    r".F----7F7F7F7F-7....
+    .|F--7||||||||FJ....
+    .||.FJ||||||||L7....
+    FJL7L7LJLJ||LJ.L-7..
+    L--J.L7...LJS7F-7L7.
+    ....F-J..F7FJ|L7L7L7
+    ....L7.F7||L7|.L7L7|
+    .....|FJLJ|FJ|F7|.LJ
+    ....FJL-7.||.||||...
+    ....L---J.LJ.LJLJ...";
 
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse("<EXAMPLE>")), "<RESULT>");
+        assert_eq!(part1(&parse(TESTINPUT)), 20);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
+        assert_eq!(part2(&parse(TESTINPUT)), 20);
     }
 }
