@@ -20,77 +20,46 @@ fn parse(input: &str) -> Vec<Vec<u32>> {
 
 #[aoc(day17, part1)]
 fn part1(map: &[Vec<u32>]) -> u32 {
-    let startpos = Pos { x: 0, y: 0 };
-    let end = Pos {
-        x: map[0].len() - 1,
-        y: map.len() - 1,
-    };
-    let mut currentbest = u32::MAX;
-    let mut wq = VecDeque::new();
-    let mut visited = FxHashMap::default();
-    wq.push_back((startpos, Dir::East, 0, 1));
-    loop {
-        for _ in 0..wq.len() {
-            if let Some((pos, dir, heatloss, dircount)) = wq.pop_front() {
-                if let Some(heatloss_last) = visited.get(&(pos, dir, dircount)) {
-                    if *heatloss_last <= heatloss {
-                        continue;
-                    } else {
-                        visited.insert((pos, dir, dircount), heatloss);
-                    }
-                } else {
-                    visited.insert((pos, dir, dircount), heatloss);
-                }
-                if heatloss > currentbest {
-                    continue;
-                }
-
-                for (p, newdir, dircnt) in valid_next_move_p1(map, dir, pos, dircount) {
-                    let new_heatloss = heatloss + map[p.y][p.x];
-                    if p == end {
-                        currentbest = min(currentbest, new_heatloss);
-                    } else {
-                        wq.push_back((p, newdir, new_heatloss, dircnt));
-                    }
-                }
-            }
-        }
-        if wq.is_empty() {
-            break;
-        }
-    }
-    currentbest
+    find_route(map, Part::P1)
 }
 
 #[aoc(day17, part2)]
 fn part2(map: &[Vec<u32>]) -> u32 {
+    find_route(map, Part::P2)
+}
+fn find_route(map: &[Vec<u32>], part: Part) -> u32 {
     let startpos = Pos { x: 0, y: 0 };
     let end = Pos {
         x: map[0].len() - 1,
         y: map.len() - 1,
     };
     let mut currentbest = u32::MAX;
+    let mut min_dircount = 0;
     let mut visited = FxHashMap::default();
     let mut pq = BinaryHeap::new();
     pq.push(Reverse((0, (startpos, Dir::East, 0, 1))));
-    pq.push(Reverse((0, (startpos, Dir::South, 0, 1))));
+    if part == Part::P2 {
+        min_dircount = 4;
+        pq.push(Reverse((0, (startpos, Dir::South, 0, 1))));
+    }
     loop {
         if let Some(Reverse((qpri, (pos, dir, heatloss, dircount)))) = pq.pop() {
             if qpri > currentbest {
                 break;
             }
-            for (p, newdir, dircnt) in valid_next_move_p2(map, dir, pos, dircount) {
+            for (p, newdir, dircnt) in valid_next_move(map, dir, pos, dircount, Part::P2) {
                 let new_heatloss = heatloss + map[p.y][p.x];
-                if p == end && dircnt >= 4 {
+                if p == end && dircnt >= min_dircount {
                     currentbest = min(currentbest, new_heatloss);
                 } else {
                     match visited.insert((p, newdir, dircnt), new_heatloss) {
                         None => {
-                            let pri = new_heatloss + (p.distance(&end) as u32 * 2)
-                                as u32;
+                            let pri = new_heatloss + (p.distance(&end) as u32 * 2) as u32;
                             pq.push(Reverse((pri, (p, newdir, new_heatloss, dircnt))));
-                        },
-                        Some(hl) => {visited.insert((p, newdir, dircnt), hl);},
+                        }
+                        Some(hl) => {
+                            visited.insert((p, newdir, dircnt), hl);
+                        }
                     }
                 }
             }
@@ -100,21 +69,33 @@ fn part2(map: &[Vec<u32>]) -> u32 {
     }
     currentbest
 }
-fn valid_next_move_p1(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32) -> Vec<(Pos, Dir, u32)> {
+fn valid_next_move(
+    map: &[Vec<u32>],
+    dir: Dir,
+    pos: Pos,
+    dircount: u32,
+    part: Part,
+) -> Vec<(Pos, Dir, u32)> {
     let mut ret = vec![];
     let max_y = map.len();
     let max_x = map[0].len();
-    match dir {
-        Dir::North | Dir::South => {
-            ret.push((pos.east(), Dir::East, 1));
-            ret.push((pos.west(), Dir::West, 1));
-        }
-        Dir::West | Dir::East => {
-            ret.push((pos.north(), Dir::North, 1));
-            ret.push((pos.south(), Dir::South, 1));
+    let (min_dircount, max_dircount) = match part {
+        Part::P1 => (0, 3),
+        Part::P2 => (4, 10),
+    };
+    if dircount >= min_dircount {
+        match dir {
+            Dir::North | Dir::South => {
+                ret.push((pos.east(), Dir::East, 1));
+                ret.push((pos.west(), Dir::West, 1));
+            }
+            Dir::West | Dir::East => {
+                ret.push((pos.north(), Dir::North, 1));
+                ret.push((pos.south(), Dir::South, 1));
+            }
         }
     }
-    if dircount < 3 {
+    if dircount < max_dircount {
         match dir {
             Dir::North => ret.push((pos.north(), dir, dircount + 1)),
             Dir::South => ret.push((pos.south(), dir, dircount + 1)),
@@ -162,7 +143,11 @@ enum Dir {
     South,
     East,
 }
-
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+enum Part {
+    P1,
+    P2,
+}
 #[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Hash, Clone, Copy)]
 struct Pos {
     x: usize,
