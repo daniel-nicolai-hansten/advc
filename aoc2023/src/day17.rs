@@ -1,9 +1,9 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::Itertools;
+
 use rustc_hash::FxHashMap;
 use std::{
-    cmp::min,
-    collections::{HashSet, VecDeque},
+    cmp::{max, min, Reverse},
+    collections::{BinaryHeap, VecDeque},
 };
 #[aoc_generator(day17)]
 fn parse(input: &str) -> Vec<Vec<u32>> {
@@ -70,42 +70,43 @@ fn part2(map: &[Vec<u32>]) -> u32 {
         y: map.len() - 1,
     };
     let mut currentbest = u32::MAX;
-    let mut wq = VecDeque::new();
     let mut visited = FxHashMap::default();
-    wq.push_back((startpos, Dir::East, 0, 1));
-    wq.push_back((startpos, Dir::South, 0, 1));
+    let mut pq = BinaryHeap::new();
+    pq.push(Reverse((0, (startpos, Dir::East, 0, 1))));
+    pq.push(Reverse((0, (startpos, Dir::South, 0, 1))));
     loop {
-        let mut closest_distance = u32::MAX;
-        let newq =  wq.iter().filter(|(_,_,hl,_)| *hl < currentbest ).sorted_by_key(|(p,_,_,_)| hl).take_while(|(p,_,_,_)|  {
-            let distance = 
-            closest_distance = min(closest_distance,closest_distance) ;
-        })
-        
-        for _ in 0..wq.len() {
-            if let Some((pos, dir, heatloss, dircount)) = wq.pop_front() {
-                if let Some(heatloss_last) = visited.get(&(pos, dir, dircount)) {
-                    if *heatloss_last < heatloss {
-                        continue;
-                    }  else {
-                        visited.insert((pos, dir, dircount), heatloss);
-                    }
+        if let Some(Reverse((qpri, (pos, dir, heatloss, dircount)))) = pq.pop() {
+            if qpri > currentbest {
+                break;
+            }
+            if let Some(heatloss_last) = visited.get(&(pos, dir, dircount)) {
+                if *heatloss_last < heatloss {
+                    continue;
                 } else {
                     visited.insert((pos, dir, dircount), heatloss);
                 }
-                if heatloss > currentbest {
-                    continue;
-                }
-                for (p, newdir, dircnt) in valid_next_move_p2(map, dir, pos, dircount) {
-                    let new_heatloss = heatloss + map[p.y][p.x];
-                    if p == end && dircnt >= 4 {
-                        currentbest = min(currentbest, new_heatloss);
-                    } else {
-                        wq.push_back((p, newdir, new_heatloss, dircnt));
+            } else {
+                visited.insert((pos, dir, dircount), heatloss);
+            }
+            if heatloss > currentbest {
+                continue;
+            }
+            for (p, newdir, dircnt) in valid_next_move_p2(map, dir, pos, dircount) {
+                let new_heatloss = heatloss + map[p.y][p.x];
+                if p == end && dircnt >= 4 {
+                    currentbest = min(currentbest, new_heatloss);
+                } else {
+                    match visited.insert((p, newdir, dircnt), new_heatloss) {
+                        None => {
+                            let pri = new_heatloss + (p.distance(&end) as u32 * 2)
+                                as u32;
+                            pq.push(Reverse((pri, (p, newdir, new_heatloss, dircnt))));
+                        },
+                        Some(hl) => {visited.insert((p, newdir, dircnt), hl);},
                     }
                 }
             }
-        }
-        if wq.is_empty() {
+        } else {
             break;
         }
     }
@@ -166,7 +167,7 @@ fn valid_next_move_p2(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32) -> Ve
         .collect()
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 enum Dir {
     North,
     West,
@@ -199,6 +200,11 @@ impl Pos {
     fn west(&self) -> Pos {
         let x = if self.x > 0 { self.x - 1 } else { self.x };
         Pos { y: self.y, x }
+    }
+    fn distance(&self, other: &Pos) -> usize {
+        let x_diff = max(self.x, other.x) - min(self.x, other.x);
+        let y_diff = max(self.y, other.y) - min(self.y, other.y);
+        x_diff + y_diff
     }
 }
 
