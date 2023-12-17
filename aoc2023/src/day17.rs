@@ -73,13 +73,20 @@ fn part2(map: &[Vec<u32>]) -> u32 {
     let mut wq = VecDeque::new();
     let mut visited = FxHashMap::default();
     wq.push_back((startpos, Dir::East, 0, 1));
+    wq.push_back((startpos, Dir::South, 0, 1));
     loop {
+        let mut closest_distance = u32::MAX;
+        let newq =  wq.iter().filter(|(_,_,hl,_)| *hl < currentbest ).sorted_by_key(|(p,_,_,_)| hl).take_while(|(p,_,_,_)|  {
+            let distance = 
+            closest_distance = min(closest_distance,closest_distance) ;
+        })
+        
         for _ in 0..wq.len() {
             if let Some((pos, dir, heatloss, dircount)) = wq.pop_front() {
                 if let Some(heatloss_last) = visited.get(&(pos, dir, dircount)) {
-                    if *heatloss_last <= heatloss {
+                    if *heatloss_last < heatloss {
                         continue;
-                    } else {
+                    }  else {
                         visited.insert((pos, dir, dircount), heatloss);
                     }
                 } else {
@@ -88,7 +95,6 @@ fn part2(map: &[Vec<u32>]) -> u32 {
                 if heatloss > currentbest {
                     continue;
                 }
-
                 for (p, newdir, dircnt) in valid_next_move_p2(map, dir, pos, dircount) {
                     let new_heatloss = heatloss + map[p.y][p.x];
                     if p == end && dircnt >= 4 {
