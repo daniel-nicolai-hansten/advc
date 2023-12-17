@@ -79,18 +79,6 @@ fn part2(map: &[Vec<u32>]) -> u32 {
             if qpri > currentbest {
                 break;
             }
-            if let Some(heatloss_last) = visited.get(&(pos, dir, dircount)) {
-                if *heatloss_last < heatloss {
-                    continue;
-                } else {
-                    visited.insert((pos, dir, dircount), heatloss);
-                }
-            } else {
-                visited.insert((pos, dir, dircount), heatloss);
-            }
-            if heatloss > currentbest {
-                continue;
-            }
             for (p, newdir, dircnt) in valid_next_move_p2(map, dir, pos, dircount) {
                 let new_heatloss = heatloss + map[p.y][p.x];
                 if p == end && dircnt >= 4 {
