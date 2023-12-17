@@ -1,6 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
-use rustc_hash::FxHashSet;
+use rustc_hash::FxHashMap;
 use std::{
     cmp::min,
     collections::{HashSet, VecDeque},
@@ -27,28 +27,30 @@ fn part1(map: &[Vec<u32>]) -> u32 {
     };
     let mut currentbest = u32::MAX;
     let mut wq = VecDeque::new();
-    let mut visited = FxHashSet::default();
-    wq.push_back((startpos, Dir::East, 0, 0));
+    let mut visited = FxHashMap::default();
+    wq.push_back((startpos, Dir::East, 0, 1));
     loop {
-        if wq.len() > 100000 {
-            wq = wq
-                .into_iter()
-                .sorted_by_key(|(_, _, heatloss, _)| *heatloss)
-                .take(100000)
-                .collect();
-        }
         for _ in 0..wq.len() {
             if let Some((pos, dir, heatloss, dircount)) = wq.pop_front() {
-                if !visited.insert((pos, dir, dircount)) || heatloss > currentbest {
-                    ()
+                if let Some(heatloss_last) = visited.get(&(pos, dir, dircount)) {
+                    if *heatloss_last <= heatloss {
+                        continue;
+                    } else {
+                        visited.insert((pos, dir, dircount), heatloss);
+                    }
                 } else {
-                    for (p, newdir, dircnt) in valid_next_move(map, dir, pos, dircount) {
-                        let new_heatloss = heatloss + map[p.y][p.x];
-                        if p == end {
-                            currentbest = min(currentbest, new_heatloss);
-                        } else {
-                            wq.push_back((p, newdir, new_heatloss, dircnt));
-                        }
+                    visited.insert((pos, dir, dircount), heatloss);
+                }
+                if heatloss > currentbest {
+                    continue;
+                }
+
+                for (p, newdir, dircnt) in valid_next_move_p1(map, dir, pos, dircount) {
+                    let new_heatloss = heatloss + map[p.y][p.x];
+                    if p == end {
+                        currentbest = min(currentbest, new_heatloss);
+                    } else {
+                        wq.push_back((p, newdir, new_heatloss, dircnt));
                     }
                 }
             }
@@ -61,24 +63,91 @@ fn part1(map: &[Vec<u32>]) -> u32 {
 }
 
 #[aoc(day17, part2)]
-fn part2(input: &[Vec<u32>]) -> usize {
-    todo!()
+fn part2(map: &[Vec<u32>]) -> u32 {
+    let startpos = Pos { x: 0, y: 0 };
+    let end = Pos {
+        x: map[0].len() - 1,
+        y: map.len() - 1,
+    };
+    let mut currentbest = u32::MAX;
+    let mut wq = VecDeque::new();
+    let mut visited = FxHashMap::default();
+    wq.push_back((startpos, Dir::East, 0, 1));
+    loop {
+        for _ in 0..wq.len() {
+            if let Some((pos, dir, heatloss, dircount)) = wq.pop_front() {
+                if let Some(heatloss_last) = visited.get(&(pos, dir, dircount)) {
+                    if *heatloss_last <= heatloss {
+                        continue;
+                    } else {
+                        visited.insert((pos, dir, dircount), heatloss);
+                    }
+                } else {
+                    visited.insert((pos, dir, dircount), heatloss);
+                }
+                if heatloss > currentbest {
+                    continue;
+                }
+
+                for (p, newdir, dircnt) in valid_next_move_p2(map, dir, pos, dircount) {
+                    let new_heatloss = heatloss + map[p.y][p.x];
+                    if p == end && dircnt >= 4 {
+                        currentbest = min(currentbest, new_heatloss);
+                    } else {
+                        wq.push_back((p, newdir, new_heatloss, dircnt));
+                    }
+                }
+            }
+        }
+        if wq.is_empty() {
+            break;
+        }
+    }
+    currentbest
 }
-fn valid_next_move(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32) -> Vec<(Pos, Dir, u32)> {
+fn valid_next_move_p1(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32) -> Vec<(Pos, Dir, u32)> {
     let mut ret = vec![];
     let max_y = map.len();
     let max_x = map[0].len();
     match dir {
         Dir::North | Dir::South => {
-            ret.push((pos.east(), Dir::East, 0));
-            ret.push((pos.west(), Dir::West, 0));
+            ret.push((pos.east(), Dir::East, 1));
+            ret.push((pos.west(), Dir::West, 1));
         }
         Dir::West | Dir::East => {
-            ret.push((pos.north(), Dir::North, 0));
-            ret.push((pos.south(), Dir::South, 0));
+            ret.push((pos.north(), Dir::North, 1));
+            ret.push((pos.south(), Dir::South, 1));
         }
     }
-    if dircount <= 5 {
+    if dircount < 3 {
+        match dir {
+            Dir::North => ret.push((pos.north(), dir, dircount + 1)),
+            Dir::South => ret.push((pos.south(), dir, dircount + 1)),
+            Dir::West => ret.push((pos.west(), dir, dircount + 1)),
+            Dir::East => ret.push((pos.east(), dir, dircount + 1)),
+        }
+    }
+    ret.into_iter()
+        .filter(|(p, _, _)| *p != pos && p.x < max_x && p.y < max_y)
+        .collect()
+}
+fn valid_next_move_p2(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32) -> Vec<(Pos, Dir, u32)> {
+    let mut ret = vec![];
+    let max_y = map.len();
+    let max_x = map[0].len();
+    if dircount >= 4 {
+        match dir {
+            Dir::North | Dir::South => {
+                ret.push((pos.east(), Dir::East, 1));
+                ret.push((pos.west(), Dir::West, 1));
+            }
+            Dir::West | Dir::East => {
+                ret.push((pos.north(), Dir::North, 1));
+                ret.push((pos.south(), Dir::South, 1));
+            }
+        }
+    }
+    if dircount < 10 {
         match dir {
             Dir::North => ret.push((pos.north(), dir, dircount + 1)),
             Dir::South => ret.push((pos.south(), dir, dircount + 1)),
@@ -143,13 +212,22 @@ mod tests {
 1224686865563
 2546548887735
 4322674655533";
+    const TESTINPUT2: &str = "111111111111
+999999999991
+999999999991
+999999999991
+999999999991";
     #[test]
     fn part1_example() {
         assert_eq!(part1(&parse(TESTINPUT)), 102);
     }
 
-    // #[test]
-    // fn part2_example() {
-    //     assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
-    // }
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(&parse(TESTINPUT)), 94);
+    }
+    #[test]
+    fn part2_example2() {
+        assert_eq!(part2(&parse(TESTINPUT2)), 71);
+    }
 }
