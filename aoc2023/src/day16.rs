@@ -14,9 +14,7 @@ fn parse(input: &str) -> Vec<Vec<char>> {
     }
     ret
 }
-// enum Mirr {
-//     Mr,
-// }
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Dir {
     Up,
@@ -60,6 +58,7 @@ fn part1(input: &[Vec<char>]) -> usize {
     let startdir = Dir::Right;
     beam_energy(input, startpos, startdir)
 }
+
 fn beam_energy(input: &[Vec<char>], startpos: Pos, startdir: Dir) -> usize {
     let max_x = input[0].len() as u8;
     let max_y = input.len() as u8;
@@ -131,7 +130,6 @@ fn beam_energy(input: &[Vec<char>], startpos: Pos, startdir: Dir) -> usize {
             }
         }
     }
-
     visited
         .iter()
         .map(|(p, _d)| p)
