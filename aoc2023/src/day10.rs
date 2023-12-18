@@ -22,8 +22,6 @@ fn part2(input: &str) -> usize {
     find_internal(&map, &visited)
 }
 
-
-
 fn find_internal(map: &[Vec<char>], visited: &HashSet<Pos>) -> usize {
     let mut tot = 0;
     let hr_map = high_res_map(&map, &visited);
@@ -287,8 +285,7 @@ fn draw_map(map: &[Vec<char>], visited: &HashSet<Pos>) {
 mod tests {
 
     use super::*;
-    const TESTINPUT: &str = 
-    r".F----7F7F7F7F-7....
+    const TESTINPUT: &str = r".F----7F7F7F7F-7....
     .|F--7||||||||FJ....
     .||.FJ||||||||L7....
     FJL7L7LJLJ||LJ.L-7..
