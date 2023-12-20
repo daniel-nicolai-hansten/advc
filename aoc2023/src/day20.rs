@@ -1,21 +1,22 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 #[aoc_generator(day20)]
 fn parse<'a>(input: &str) -> HashMap<String, PulseModule> {
     let mut ret = HashMap::new();
     for line in input.lines() {
+        let line = line.trim_start();
         let (prefx, splits) = line.split_once(" -> ").unwrap();
         let targets: Vec<String> = splits.split(", ").map(|s| s.to_string()).collect();
         match line.get(0..1).unwrap() {
             "b" => ret.insert("broadcaster".to_string(), PulseModule::In(targets)),
             "%" => ret.insert(
                 prefx.trim_start_matches('%').to_string(),
-                PulseModule::FlipFlop((false, targets)),
+                PulseModule::FlipFlop((Signal::None, targets)),
             ),
             "&" => ret.insert(
                 prefx.trim_start_matches('&').to_string(),
-                PulseModule::Conjunction((false, HashMap::new(), targets)),
+                PulseModule::Conjunction((Signal::None, HashMap::new(), targets)),
             ),
             _ => None,
         };
@@ -38,36 +39,53 @@ fn parse<'a>(input: &str) -> HashMap<String, PulseModule> {
     }
 
     for (con, trgt) in connections {
-        let target = ret.get_mut(&trgt).unwrap();
-        match target {
-            PulseModule::Conjunction((_, states, _)) => {
-                states.insert(con.clone(), false);
+        if let Some(target) = ret.get_mut(&trgt) {
+            match target {
+                PulseModule::Conjunction((_, states, _)) => {
+                    states.insert(con.clone(), Signal::None);
+                }
+                _ => (),
             }
-            _ => (),
         }
     }
     ret
 }
-fn send_puls(module: &mut PulseModule, signal: bool, src: String) -> Vec<(String, bool)> {
+fn send_puls(module: &mut PulseModule, signal: Signal, src: String) -> Vec<(String, Signal)> {
     let mut ret = vec![];
     match module {
-        PulseModule::Conjunction((curstate, states, targets)) => {
+        PulseModule::Conjunction((_curstate, states, targets)) => {
             states.insert(src, signal);
-            let out = states.iter().fold(true, |acc, (_, state)| *state && acc);
+            let outb = states
+                .iter()
+                .fold(true, |acc, (_, state)| *state == Signal::High && acc);
+            let out = if !outb { Signal::High } else { Signal::Low };
             for target in targets {
                 ret.push((target.clone(), out));
             }
         }
+
         PulseModule::FlipFlop((curstate, targets)) => {
-            let out = if !signal { !*curstate } else { *curstate };
+            let mut changed = false;
+            let out = if signal == Signal::Low {
+                changed = true;
+                if *curstate == Signal::High {
+                    Signal::Low
+                } else {
+                    Signal::High
+                }
+            } else {
+                *curstate
+            };
             *curstate = out;
-            for target in targets {
-                ret.push((target.clone(), out));
+            if changed {
+                for target in targets {
+                    ret.push((target.clone(), out));
+                }
             }
         }
         PulseModule::In(targets) => {
             for target in targets {
-                ret.push((target.clone(), false));
+                ret.push((target.clone(), Signal::Low));
             }
         }
     }
@@ -75,49 +93,137 @@ fn send_puls(module: &mut PulseModule, signal: bool, src: String) -> Vec<(String
 }
 
 #[aoc(day20, part1)]
-fn part1(input: &HashMap<String, PulseModule>) -> String {
+fn part1(input: &HashMap<String, PulseModule>) -> u64 {
+    let mut map = input.clone();
     // for inm in input {
     //     println!("{inm:?}");
     // }
-    for _i in 0..10 {
-        let mut stack = vec![];
-
-        stack.push(("broadcaster".to_string(), false));
-        let mut currnm = "broadcaster".to_string();
-        loop {
-            let (currnm, signal) = stack.pop().unwrap();
-            let curr = input.get(&currnm).unwrap();
-            for res in send_puls(curr, signal, src) {}
-            if stack.is_empty() {
-                break;
+    let mut low_sum = 0;
+    let mut high_sum = 0;
+    for _ in 0..1000 {
+        let mut que = VecDeque::new();
+        // println!("{map:?}");
+        que.push_back(("broadcaster".to_string(), "button".to_string(), Signal::Low));
+        while !que.is_empty() {
+            let (currnm, source, signal) = que.pop_front().unwrap();
+            match signal {
+                Signal::High => high_sum += 1,
+                Signal::Low => low_sum += 1,
+                _ => (),
+            }
+            // println!("{source} -{signal:?}-> {currnm}");
+            if let Some(curr) = map.get_mut(&currnm) {
+                for (dst, sign) in send_puls(curr, signal, source).iter() {
+                    que.push_back((dst.clone(), currnm.clone(), *sign));
+                }
             }
         }
     }
-    "ok".to_string()
+    println!("high: {high_sum}  low: {low_sum}");
+    low_sum * high_sum
 }
 
 #[aoc(day20, part2)]
-fn part2(input: &HashMap<String, PulseModule>) -> String {
-    todo!()
+fn part2(input: &HashMap<String, PulseModule>) -> u64 {
+    let mut map = input.clone();
+    let mut rxparent = "None".to_string();
+    let mut rxparent_len = 0;
+    for (s, pm) in &map {
+        match pm {
+            PulseModule::Conjunction((_, parent, target)) if target.contains(&"rx".to_string()) => {
+                println!("rxparent found {s}");
+                rxparent_len = parent.len();
+                rxparent = s.clone();
+                break;
+            }
+            _ => (),
+        }
+    }
+    
+    let mut seen: Vec<String> = vec![];
+    let mut lcms: Vec<u64> = vec![];
+    let mut res = 0;
+    'outer: loop {
+        res += 1;
+        let mut que = VecDeque::new();
+        que.push_back(("broadcaster".to_string(), "button".to_string(), Signal::Low));
+        while !que.is_empty() {
+            let (currnm, source, signal) = que.pop_front().unwrap();
+            if &currnm == &rxparent && signal == Signal::High {
+                if !seen.contains(&source) {
+                    seen.push(source.clone());
+                    lcms.push(res);
+                }
+                if seen.len() == rxparent_len {
+                    break 'outer;
+                }
+            }
+            if let Some(curr) = map.get_mut(&currnm) {
+                for (dst, sign) in send_puls(curr, signal, source).iter() {
+                    que.push_back((dst.clone(), currnm.clone(), *sign));
+                }
+            }
+        }
+    }
+    lcms.into_iter().reduce(|acc, x| lcm(acc, x)).unwrap()
 }
-#[derive(Debug)]
+fn lcm(first: u64, second: u64) -> u64 {
+    first * second / gcd(first, second)
+}
+fn gcd(first: u64, second: u64) -> u64 {
+    let mut max = first;
+    let mut min = second;
+    if min > max {
+        let val = max;
+        max = min;
+        min = val;
+    }
+
+    loop {
+        let rem = max % min;
+        if rem == 0 {
+            return min;
+        }
+
+        max = min;
+        min = rem;
+    }
+}
+#[derive(Debug, Clone)]
 enum PulseModule {
     In(Vec<String>),
-    FlipFlop((bool, Vec<String>)),
-    Conjunction((bool, HashMap<String, bool>, Vec<String>)),
+    FlipFlop((Signal, Vec<String>)),
+    Conjunction((Signal, HashMap<String, Signal>, Vec<String>)),
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum Signal {
+    High,
+    Low,
+    None,
 }
 #[cfg(test)]
 mod tests {
     use super::*;
-    const TESTINPUT: &str = "broadcaster -> a, b, c
-%a -> b
-%b -> c
-%c -> inv
-&inv -> a";
+    const TESTINPUT1: &str = "broadcaster -> a, b, c
+    %a -> b
+    %b -> c
+    %c -> inv
+    &inv -> a";
+    const TESTINPUT2: &str = "broadcaster -> a
+%a -> inv, con
+&inv -> b
+%b -> con
+&con -> output";
+
     #[test]
-    fn part1_example() {
-        let ins = parse(TESTINPUT);
-        assert_eq!(part1(&ins), "<RESULT>");
+    fn part1_example1() {
+        let ins = parse(TESTINPUT1);
+        assert_eq!(part1(&ins), 32000000);
+    }
+    #[test]
+    fn part1_example2() {
+        let ins = parse(TESTINPUT2);
+        assert_eq!(part1(&ins), 11687500);
     }
 
     // #[test]

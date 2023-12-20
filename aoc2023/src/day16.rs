@@ -1,8 +1,8 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 use rayon::prelude::*;
-use std::collections::{HashSet, VecDeque};
 use rustc_hash::FxHashSet;
+use std::collections::{HashSet, VecDeque};
 #[aoc_generator(day16)]
 fn parse(input: &str) -> Vec<Vec<char>> {
     let mut ret = vec![];
@@ -51,7 +51,6 @@ impl Pos {
         Pos { y: self.y, x }
     }
 }
-
 
 #[aoc(day16, part1)]
 fn part1(input: &[Vec<char>]) -> usize {
