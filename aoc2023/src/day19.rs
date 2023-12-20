@@ -151,7 +151,7 @@ fn parse_wf_for_part<'a>(part: &Part, action: &'a [Action]) -> &'a str {
     ""
 }
 fn parse_wf_for_part_2<'a>(part: &Range, action: &'a [Action]) -> &'a str {
-    let ret = vec![];
+    // let ret = vec![];
     for acc in action {
         match &acc {
             &Action::Less((c, num, target)) => match c {
@@ -205,29 +205,29 @@ struct Range {
     s_h: u32,
     s_l: u32,
 } 
-impl Range {
-    fn x_h(&self, high: u32) -> Self {
-        let mut ret = self.clone();
-        ret.x_h = min(self.x_h, high);
-        *ret
-    }
-    fn m_h(&self, high: u32) -> Self {
-        let mut ret = self.clone();
-        ret.x_h = min(self.x_h, high);
-        *ret
-    }
-    fn a_h(&self, high: u32) -> Self {
-        let mut ret = self.clone();
-        ret.x_h = min(self.x_h, high);
-        *ret
-    }
-    fn s_h(&self, high: u32) -> Self {
-        let mut ret = self.clone();
-        ret.x_h = min(self.x_h, high);
-        *ret
-    }
+// impl Range {
+//     fn x_h(&self, high: u32) -> Self {
+//         let mut ret = self.clone();
+//         ret.x_h = min(self.x_h, high);
+//         *ret
+//     }
+//     fn m_h(&self, high: u32) -> Self {
+//         let mut ret = self.clone();
+//         ret.x_h = min(self.x_h, high);
+//         *ret
+//     }
+//     fn a_h(&self, high: u32) -> Self {
+//         let mut ret = self.clone();
+//         ret.x_h = min(self.x_h, high);
+//         *ret
+//     }
+//     fn s_h(&self, high: u32) -> Self {
+//         let mut ret = self.clone();
+//         ret.x_h = min(self.x_h, high);
+//         *ret
+//     }
     
-}
+// }
 #[cfg(test)]
 mod tests {
     use super::*;

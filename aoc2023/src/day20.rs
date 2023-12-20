@@ -154,6 +154,7 @@ fn part2(input: &HashMap<String, PulseModule>) -> u64 {
                     seen.push(source.clone());
                     lcms.push(res);
                 }
+                println!("{source} {res}");
                 if seen.len() == rxparent_len {
                     break 'outer;
                 }
