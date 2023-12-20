@@ -1,6 +1,6 @@
-use std::collections::{HashMap, VecDeque};
-
 use aoc_runner_derive::{aoc, aoc_generator};
+use num::integer::lcm;
+use std::collections::{HashMap, VecDeque};
 #[aoc_generator(day20)]
 fn parse<'a>(input: &str) -> HashMap<String, PulseModule> {
     let mut ret = HashMap::new();
@@ -139,7 +139,7 @@ fn part2(input: &HashMap<String, PulseModule>) -> u64 {
             _ => (),
         }
     }
-    
+
     let mut seen: Vec<String> = vec![];
     let mut lcms: Vec<u64> = vec![];
     let mut res = 0;
@@ -167,28 +167,7 @@ fn part2(input: &HashMap<String, PulseModule>) -> u64 {
     }
     lcms.into_iter().reduce(|acc, x| lcm(acc, x)).unwrap()
 }
-fn lcm(first: u64, second: u64) -> u64 {
-    first * second / gcd(first, second)
-}
-fn gcd(first: u64, second: u64) -> u64 {
-    let mut max = first;
-    let mut min = second;
-    if min > max {
-        let val = max;
-        max = min;
-        min = val;
-    }
 
-    loop {
-        let rem = max % min;
-        if rem == 0 {
-            return min;
-        }
-
-        max = min;
-        min = rem;
-    }
-}
 #[derive(Debug, Clone)]
 enum PulseModule {
     In(Vec<String>),

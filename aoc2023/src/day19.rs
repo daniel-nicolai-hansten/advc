@@ -1,3 +1,4 @@
+use std::cmp::min;
 use std::collections::HashMap;
 
 use aoc_runner_derive::{aoc, aoc_generator};
@@ -115,48 +116,72 @@ fn parse_wf_for_part<'a>(part: &Part, action: &'a [Action]) -> &'a str {
     for acc in action {
         match &acc {
             &Action::Less((c, num, target)) => match c {
-                'x' => {
-                    if part.x < *num {
-                        return &target;
-                    }
+                'x' if part.x < *num => {
+                    return &target;
                 }
-                'm' => {
-                    if part.m < *num {
-                        return &target;
-                    }
+                'm' if part.m < *num => {
+                    return &target;
                 }
-                'a' => {
-                    if part.a < *num {
-                        return &target;
-                    }
+                'a' if part.a < *num => {
+                    return &target;
                 }
-                's' => {
-                    if part.s < *num {
-                        return &target;
-                    }
+                's' if part.s < *num => {
+                    return &target;
                 }
                 _ => (),
             },
             &Action::More((c, num, target)) => match c {
-                'x' => {
-                    if part.x > *num {
-                        return &target;
-                    }
+                'x' if part.x > *num => {
+                    return &target;
                 }
-                'm' => {
-                    if part.m > *num {
-                        return &target;
-                    }
+                'm' if part.m > *num => {
+                    return &target;
                 }
-                'a' => {
-                    if part.a > *num {
-                        return &target;
-                    }
+                'a' if part.a > *num => {
+                    return &target;
                 }
-                's' => {
-                    if part.s > *num {
-                        return &target;
-                    }
+                's' if part.s > *num => {
+                    return &target;
+                }
+                _ => (),
+            },
+            &Action::Send(target) => return &target,
+        }
+    }
+    ""
+}
+fn parse_wf_for_part_2<'a>(part: &Range, action: &'a [Action]) -> &'a str {
+    let ret = vec![];
+    for acc in action {
+        match &acc {
+            &Action::Less((c, num, target)) => match c {
+                'x' if part.x_l < *num => {
+
+                    return &target;
+                }
+                'm' if part.m_l < *num => {
+                    return &target;
+                }
+                'a' if part.a_l < *num => {
+                    return &target;
+                }
+                's' if part.s_l < *num => {
+                    return &target;
+                }
+                _ => (),
+            },
+            &Action::More((c, num, target)) => match c {
+                'x' if part.x_h > *num => {
+                    return &target;
+                }
+                'm' if part.m_h > *num => {
+                    return &target;
+                }
+                'a' if part.a_h > *num => {
+                    return &target;
+                }
+                's' if part.s_h > *num => {
+                    return &target;
                 }
                 _ => (),
             },
@@ -170,7 +195,39 @@ fn parse_wf_for_part<'a>(part: &Part, action: &'a [Action]) -> &'a str {
 fn part2(input: &(HashMap<String, Vec<Action>>, Vec<Part>)) -> String {
     todo!()
 }
-
+struct Range {
+    x_h: u32,
+    x_l: u32,
+    m_h: u32,
+    m_l: u32,
+    a_h: u32,
+    a_l: u32,
+    s_h: u32,
+    s_l: u32,
+} 
+impl Range {
+    fn x_h(&self, high: u32) -> Self {
+        let mut ret = self.clone();
+        ret.x_h = min(self.x_h, high);
+        *ret
+    }
+    fn m_h(&self, high: u32) -> Self {
+        let mut ret = self.clone();
+        ret.x_h = min(self.x_h, high);
+        *ret
+    }
+    fn a_h(&self, high: u32) -> Self {
+        let mut ret = self.clone();
+        ret.x_h = min(self.x_h, high);
+        *ret
+    }
+    fn s_h(&self, high: u32) -> Self {
+        let mut ret = self.clone();
+        ret.x_h = min(self.x_h, high);
+        *ret
+    }
+    
+}
 #[cfg(test)]
 mod tests {
     use super::*;
