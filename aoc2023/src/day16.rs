@@ -2,6 +2,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 use rayon::prelude::*;
 use std::collections::{HashSet, VecDeque};
+use rustc_hash::FxHashSet;
 #[aoc_generator(day16)]
 fn parse(input: &str) -> Vec<Vec<char>> {
     let mut ret = vec![];
@@ -50,7 +51,7 @@ impl Pos {
         Pos { y: self.y, x }
     }
 }
-use rustc_hash::FxHashSet;
+
 
 #[aoc(day16, part1)]
 fn part1(input: &[Vec<char>]) -> usize {
@@ -62,7 +63,7 @@ fn part1(input: &[Vec<char>]) -> usize {
 fn beam_energy(input: &[Vec<char>], startpos: Pos, startdir: Dir) -> usize {
     let max_x = input[0].len() as u8;
     let max_y = input.len() as u8;
-    let mut visited: FxHashSet<(Pos, Dir)> = FxHashSet::default();
+    let mut visited = FxHashSet::default();
     let mut beamque = VecDeque::new();
     beamque.push_back((startpos, startdir));
 
@@ -167,28 +168,13 @@ fn part2(input: &[Vec<char>]) -> usize {
     let max_x = input[0].len() as u8;
     for x in 0..max_x {
         wq.push((Pos { y: 0, x }, Dir::Down));
-        wq.push((
-            Pos {
-                y: max_y - 1 as u8,
-                x,
-            },
-            Dir::Up,
-        ));
+        wq.push((Pos { y: max_y - 1 as u8, x }, Dir::Up));
     }
     for y in 0..max_y {
         wq.push((Pos { y, x: 0 }, Dir::Right));
-        wq.push((
-            Pos {
-                y,
-                x: max_x - 1 as u8,
-            },
-            Dir::Left,
-        ));
+        wq.push((Pos { y, x: max_x - 1 as u8 }, Dir::Left));
     }
-    wq.par_iter()
-        .map(|(p, d)| beam_energy(input, *p, *d))
-        .max()
-        .unwrap()
+    wq.par_iter().map(|(p, d)| beam_energy(input, *p, *d)).max().unwrap()
 }
 
 #[cfg(test)]
