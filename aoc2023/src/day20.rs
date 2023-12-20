@@ -2,19 +2,19 @@ use std::collections::HashMap;
 
 use aoc_runner_derive::{aoc, aoc_generator};
 #[aoc_generator(day20)]
-fn parse<'a>(input: &'a str) -> HashMap<&'a str, PulseModule> {
+fn parse<'a>(input: &str) -> HashMap<String, PulseModule> {
     let mut ret = HashMap::new();
     for line in input.lines() {
         let (prefx, splits) = line.split_once(" -> ").unwrap();
-        let targets: Vec<&str> = splits.split(", ").collect();
+        let targets: Vec<String> = splits.split(", ").map(|s| s.to_string()).collect();
         match line.get(0..1).unwrap() {
-            "b" => ret.insert("broadcaster", PulseModule::In(targets)),
+            "b" => ret.insert("broadcaster".to_string(), PulseModule::In(targets)),
             "%" => ret.insert(
-                prefx.trim_start_matches('%'),
+                prefx.trim_start_matches('%').to_string(),
                 PulseModule::FlipFlop((HashMap::new(), targets)),
             ),
             "&" => ret.insert(
-                prefx.trim_start_matches('%'),
+                prefx.trim_start_matches('%').to_string(),
                 PulseModule::Conjunction((HashMap::new(), targets)),
             ),
             _ => None,
@@ -24,19 +24,19 @@ fn parse<'a>(input: &'a str) -> HashMap<&'a str, PulseModule> {
 }
 
 #[aoc(day20, part1)]
-fn part1<'a>(input: &'a HashMap<&str, PulseModule>) -> String {
+fn part1(input: &HashMap<String, PulseModule>) -> String {
     todo!()
 }
 
 #[aoc(day20, part2)]
-fn part2<'a>(input: &'a HashMap<&str, PulseModule>) -> String {
+fn part2(input: &HashMap<String, PulseModule>) -> String {
     todo!()
 }
 
-enum PulseModule<'a> {
-    In(Vec<&'a str>),
-    FlipFlop((HashMap<&'a str, u32>, Vec<&'a str>)),
-    Conjunction((HashMap<&'a str, u32>, Vec<&'a str>)),
+enum PulseModule {
+    In(Vec<String>),
+    FlipFlop((HashMap<String, u32>, Vec<String>)),
+    Conjunction((HashMap<String, u32>, Vec<String>)),
 }
 #[cfg(test)]
 mod tests {
