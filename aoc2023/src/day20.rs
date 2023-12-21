@@ -117,7 +117,7 @@ fn part1(input: &HashMap<String, PulseModule>) -> u64 {
             }
         }
     }
-    println!("high: {high_sum}  low: {low_sum}");
+    // println!("high: {high_sum}  low: {low_sum}");
     low_sum * high_sum
 }
 

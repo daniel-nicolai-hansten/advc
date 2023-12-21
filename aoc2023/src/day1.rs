@@ -147,7 +147,12 @@ fn part2<'a>(input: &[String]) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const TESTINPUT: &str = "two1nine
+    const TESTINPUT1: &str = "1abc2
+    pqr3stu8vwx
+    a1b2c3d4e5f
+    treb7uchet";
+
+    const TESTINPUT2: &str = "two1nine
     eightwothree
     abcone2threexyz
     xtwone3four
@@ -156,11 +161,11 @@ mod tests {
     7pqrstsixteen";
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse(TESTINPUT)), 20);
+        assert_eq!(part1(&parse(TESTINPUT1)), 142);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse(TESTINPUT)), 20);
+        assert_eq!(part2(&parse(TESTINPUT2)), 281);
     }
 }

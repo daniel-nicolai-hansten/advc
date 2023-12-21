@@ -42,7 +42,7 @@ fn parse_input(input: &str) -> (Vec<Vec<char>>, Pos) {
     let mut startpos = Pos { x: 0, y: 0 };
     for (y, ln) in input.lines().enumerate() {
         let mut row = vec![];
-        let line = ln;
+        let line = ln.trim();
         for (x, c) in line.chars().enumerate() {
             if c == 'S' {
                 startpos = Pos { x, y };
@@ -60,7 +60,6 @@ fn high_res_map(map: &[Vec<char>], visited: &HashSet<Pos>) -> Vec<Vec<bool>> {
 
     let res_y = map.len() * 3;
     let res_x = map[0].len() * 3;
-    println!("{res_y}  {res_x}");
     for _ in 0..res_y {
         let mut rowvec = vec![];
         for _ in 0..res_x {
@@ -285,24 +284,28 @@ fn draw_map(map: &[Vec<char>], visited: &HashSet<Pos>) {
 mod tests {
 
     use super::*;
-    const TESTINPUT: &str = r".F----7F7F7F7F-7....
-    .|F--7||||||||FJ....
-    .||.FJ||||||||L7....
-    FJL7L7LJLJ||LJ.L-7..
-    L--J.L7...LJS7F-7L7.
-    ....F-J..F7FJ|L7L7L7
-    ....L7.F7||L7|.L7L7|
-    .....|FJLJ|FJ|F7|.LJ
-    ....FJL-7.||.||||...
-    ....L---J.LJ.LJLJ...";
-
+    const TESTINPUT: &str = r".....
+    .S-7.
+    .|.|.
+    .L-J.
+    .....";
+    const TESTINPUT2: &str = "...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........";
+    // FIXME Map start to S and replace pipe
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse(TESTINPUT)), 20);
+        assert_eq!(part1(&parse(TESTINPUT)), 7);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse(TESTINPUT)), 20);
+        assert_eq!(part2(&parse(TESTINPUT2)), 0);
     }
 }
