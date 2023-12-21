@@ -95,9 +95,7 @@ fn send_puls(module: &mut PulseModule, signal: Signal, src: String) -> Vec<(Stri
 #[aoc(day20, part1)]
 fn part1(input: &HashMap<String, PulseModule>) -> u64 {
     let mut map = input.clone();
-    // for inm in input {
-    //     println!("{inm:?}");
-    // }
+
     let mut low_sum = 0;
     let mut high_sum = 0;
     for _ in 0..1000 {
@@ -131,7 +129,6 @@ fn part2(input: &HashMap<String, PulseModule>) -> u64 {
     for (s, pm) in &map {
         match pm {
             PulseModule::Conjunction((_, parent, target)) if target.contains(&"rx".to_string()) => {
-                println!("rxparent found {s}");
                 rxparent_len = parent.len();
                 rxparent = s.clone();
                 break;
@@ -154,7 +151,6 @@ fn part2(input: &HashMap<String, PulseModule>) -> u64 {
                     seen.push(source.clone());
                     lcms.push(res);
                 }
-                println!("{source} {res}");
                 if seen.len() == rxparent_len {
                     break 'outer;
                 }

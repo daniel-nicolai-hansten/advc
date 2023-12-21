@@ -62,12 +62,16 @@ impl Pos {
 }
 #[aoc(day21, part1)]
 fn part1(input: &(Vec<Vec<Garden>>, Pos)) -> usize {
+    #[cfg(test)]
+    let steps = 6;
+    #[cfg(not(test))]
+    let steps = 64;
     let (map, start) = input;
     // let mut visited: HashSet<Pos> = HashSet::new();
     let mut wq: VecDeque<Pos> = VecDeque::new();
     let mut nxq = Vec::new();
     wq.push_back(*start);
-    for _ in 0..64 {
+    for _ in 0..steps {
         while !wq.is_empty() {
             let pos = wq.pop_front().unwrap();
             for nxp in pos.get_neighbor() {

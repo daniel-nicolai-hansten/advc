@@ -20,7 +20,7 @@ fn parse(input: &str) -> (HashMap<String, Vec<Action>>, Vec<Part>) {
         } else if let Ok((_, part)) = part(line) {
             parts.push(part);
         } else {
-            println!("parse err");
+            // println!("parse err");
         }
     }
     (workflows, parts)
