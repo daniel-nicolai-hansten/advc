@@ -19,7 +19,7 @@ fn parse(input: &str) -> Vec<Card> {
             antall: 1,
         })
     }
-    cards   
+    cards
 }
 
 #[aoc(day4, part1)]
@@ -43,8 +43,8 @@ fn part1(cards: &[Card]) -> u32 {
 }
 
 #[aoc(day4, part2)]
-fn part2(input:  &[Card]) -> u32 {
-    let mut cards:Vec<Card> = input.iter().map(|c| c.clone()).collect();
+fn part2(input: &[Card]) -> u32 {
+    let mut cards: Vec<Card> = input.iter().map(|c| c.clone()).collect();
     for i in 0..cards.len() {
         let card = &cards[i];
         let mut points = 0;
@@ -64,7 +64,7 @@ fn part2(input:  &[Card]) -> u32 {
     for card in cards {
         tot += card.antall;
     }
-    
+
     tot
 }
 #[derive(Clone)]
@@ -82,10 +82,10 @@ mod tests {
     Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
     Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
     Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
-    
+
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse(TESTINPUT)),13);
+        assert_eq!(part1(&parse(TESTINPUT)), 13);
     }
 
     #[test]

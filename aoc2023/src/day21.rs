@@ -163,7 +163,7 @@ fn part1(input: &(Vec<Vec<Garden>>, Pos)) -> usize {
     wq.len()
 }
 use crate::day9::{predict, Dir};
-use num::integer::Roots;
+
 #[aoc(day21, part2)]
 fn part2(input: &(Vec<Vec<Garden>>, Pos)) -> i64 {
     let mut fields = vec![];
@@ -174,7 +174,8 @@ fn part2(input: &(Vec<Vec<Garden>>, Pos)) -> i64 {
         mapx: 0,
         mapy: 0,
     };
-    let mut visited: HashSet<InfPos> = HashSet::new();
+    let mut visited_even: HashSet<InfPos> = HashSet::new();
+    let mut visited_odd: HashSet<InfPos> = HashSet::new();
     let (ymax, xmax) = (map.len(), map[0].len());
     let mut wq: VecDeque<InfPos> = VecDeque::new();
     let mut nxq = Vec::new();
@@ -182,16 +183,19 @@ fn part2(input: &(Vec<Vec<Garden>>, Pos)) -> i64 {
 
     // }
     wq.push_back(start);
-    // visited.insert(start);
-    'outer: for i in 1..328 {
+    visited_even.insert(start);
+    for i in 1..330 {
         while !wq.is_empty() {
             let pos = wq.pop_front().unwrap();
-            // if pos == trgt {
-            //     break 'outer;
-            // }
             for nxp in pos.get_neighbor(ymax, xmax) {
-                if map[nxp.y % ymax][nxp.x % xmax] == Garden::Plot && !visited.contains(&nxp) {
-                    // visited.insert(nxp);
+                if map[nxp.y % ymax][nxp.x % xmax] == Garden::Plot
+                    && ((i % 2 == 1 && !visited_odd.contains(&nxp)) || (i % 2 == 0 && !visited_even.contains(&nxp)))
+                {
+                    if i % 2 == 1 {
+                        visited_odd.insert(nxp);
+                    } else {
+                        visited_even.insert(nxp);
+                    }
                     nxq.push(nxp);
                 }
             }
@@ -203,23 +207,23 @@ fn part2(input: &(Vec<Vec<Garden>>, Pos)) -> i64 {
         });
         nxq.clear();
         if i == 65 || (i - 65) % 131 == 0 {
-            println!("{i}: {} , ", wq.len());
-            fields.push((wq.len(), i));
+            let visited_num = if i % 2 == 1 {
+                visited_odd.len()
+            } else {
+                visited_even.len()
+            };
+            fields.push(visited_num);
         }
     }
-    let mut pattern: Vec<i64> = fields.iter().map(|(n, _i)| *n as i64).collect();
-    let mut idxes: Vec<i64> = fields.iter().map(|(_n, i)| *i as i64).collect();
+    let arrlen = fields.len();
+    let mut pattern: Vec<i64> = fields.iter().map(|n| *n as i64).collect();
     for _ in 0..202_300 {
         let len = pattern.len() - 3;
         let num = predict(&pattern[len..], &Dir::Fwd);
-        let idx = predict(&idxes[len..], &Dir::Fwd);
-        idxes.push(idx);
-        // println!("{num}");
         pattern.push(num);
     }
 
-    let len = pattern.len() - 3;
-
+    let len = pattern.len() - arrlen;
     pattern[len]
 }
 
