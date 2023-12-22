@@ -1,7 +1,6 @@
 use std::collections::{HashSet, VecDeque};
 
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::Itertools;
 
 #[aoc_generator(day21)]
 fn parse(input: &str) -> (Vec<Vec<Garden>>, Pos) {
@@ -163,10 +162,10 @@ fn part1(input: &(Vec<Vec<Garden>>, Pos)) -> usize {
     }
     wq.len()
 }
-use num::integer::Roots;
 use crate::day9::{predict, Dir};
+use num::integer::Roots;
 #[aoc(day21, part2)]
-fn part2(input: &(Vec<Vec<Garden>>, Pos)) ->i64 {
+fn part2(input: &(Vec<Vec<Garden>>, Pos)) -> i64 {
     let mut fields = vec![];
     let (map, st) = input;
     let start = InfPos {
@@ -184,7 +183,7 @@ fn part2(input: &(Vec<Vec<Garden>>, Pos)) ->i64 {
     // }
     wq.push_back(start);
     // visited.insert(start);
-    'outer: for i in 0..460{
+    'outer: for i in 1..328 {
         while !wq.is_empty() {
             let pos = wq.pop_front().unwrap();
             // if pos == trgt {
@@ -203,30 +202,25 @@ fn part2(input: &(Vec<Vec<Garden>>, Pos)) ->i64 {
             wq.push_back(*nxp);
         });
         nxq.clear();
-        if i > 65 && (i - 65) % 131 == 0 {
+        if i == 65 || (i - 65) % 131 == 0 {
             println!("{i}: {} , ", wq.len());
-            fields.push(wq.len());
+            fields.push((wq.len(), i));
         }
     }
-    let mut pattern:Vec<i64> = fields.iter().map(|n| *n as i64).collect();
+    let mut pattern: Vec<i64> = fields.iter().map(|(n, _i)| *n as i64).collect();
+    let mut idxes: Vec<i64> = fields.iter().map(|(_n, i)| *i as i64).collect();
     for _ in 0..202_300 {
-        let len = pattern.len() -3;
+        let len = pattern.len() - 3;
         let num = predict(&pattern[len..], &Dir::Fwd);
-        println!("{num}");
+        let idx = predict(&idxes[len..], &Dir::Fwd);
+        idxes.push(idx);
+        // println!("{num}");
         pattern.push(num);
     }
-    // let mut diffs = vec![];
-    // for (f1, f2) in fields.iter().tuple_windows() {
-    //     let diff = f2.abs_diff(*f1);
-    //     diffs.push(diff);
-    //     // println!("{diff_sq}, {f2} ");
-    // }
-    // diffs
-    //     .iter()
-    //     .tuple_windows()
-    //     .map(|(diff1, diff2)| diff1.abs_diff(*diff2))
-    //     .for_each(|n| print!("{n}  "));
-    pattern[202_300]
+
+    let len = pattern.len() - 3;
+
+    pattern[len]
 }
 
 #[cfg(test)]
