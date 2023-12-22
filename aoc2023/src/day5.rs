@@ -2,6 +2,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 
 #[aoc_generator(day5)]
 fn parse(input: &str) -> Vec<RangeMap> {
+    let mut ret = vec![];
     let mut seeds = vec![];
     let mut seed_to_soil = vec![];
     let mut soil_to_fertilizer = vec![];
@@ -34,51 +35,52 @@ fn parse(input: &str) -> Vec<RangeMap> {
                 }
             }
             ParseState::Soil => {
-                if let Some(range) = RangeMap::try_from(splits[0]) {
+                if let Some(range) = RangeMap2::try_from(splits[0]) {
                     seed_to_soil.push(range);
                 }
             }
             ParseState::Fertilizer => {
-                if let Some(range) = RangeMap::try_from(splits[0]) {
+                if let Some(range) = RangeMap2::try_from(splits[0]) {
                     soil_to_fertilizer.push(range);
                 }
             }
             ParseState::Water => {
-                if let Some(range) = RangeMap::try_from(splits[0]) {
+                if let Some(range) = RangeMap2::try_from(splits[0]) {
                     fertilizer_to_water.push(range);
                 }
             }
             ParseState::Light => {
-                if let Some(range) = RangeMap::try_from(splits[0]) {
+                if let Some(range) = RangeMap2::try_from(splits[0]) {
                     water_to_light.push(range);
                 }
             }
             ParseState::Temperature => {
-                if let Some(range) = RangeMap::try_from(splits[0]) {
+                if let Some(range) = RangeMap2::try_from(splits[0]) {
                     light_to_temperature.push(range);
                 }
             }
             ParseState::Humidity => {
-                if let Some(range) = RangeMap::try_from(splits[0]) {
+                if let Some(range) = RangeMap2::try_from(splits[0]) {
                     temperature_to_humidity.push(range);
                 }
             }
             ParseState::Location => {
-                if let Some(range) = RangeMap::try_from(splits[0]) {
+                if let Some(range) = RangeMap2::try_from(splits[0]) {
                     humidity_to_location.push(range);
                 }
             }
         }
     }
+    ret
 }
 
 #[aoc(day5, part1)]
-fn part1(input: &str) -> String {
+fn part1(input: &[RangeMap]) -> String {
     todo!()
 }
 
 #[aoc(day5, part2)]
-fn part2(input: &str) -> String {
+fn part2(input: &[RangeMap]) -> String {
     todo!()
 }
 type Range = (u32, u32);
@@ -167,14 +169,14 @@ enum ParseState {
     Location,
 }
 #[derive(Debug)]
-struct RangeMap {
+struct RangeMap2 {
     s_start: u64,
     s_end: u64,
     d_start: u64,
     d_end: u64,
 }
 
-impl RangeMap {
+impl RangeMap2 {
     fn try_from(value: &str) -> Option<Self> {
         let nums: Vec<Result<u64, ParseIntError>> = value.split_ascii_whitespace().map(|x| x.parse::<u64>()).collect();
 
@@ -199,7 +201,7 @@ impl RangeMap {
         ret
     }
 }
-fn find_in_rangemaps(maps: &Vec<RangeMap>, s: u64) -> u64 {
+fn find_in_rangemaps(maps: &Vec<RangeMap2>, s: u64) -> u64 {
     let mut ret = s;
     for map in maps {
         if let Some(d) = map.in_range(s) {
