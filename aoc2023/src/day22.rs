@@ -1,6 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
-use num::BigRational;
+
 #[aoc_generator(day22)]
 fn parse(input: &str) -> Vec<Brick> {
     let mut ret = vec![];
@@ -116,7 +116,7 @@ fn part1(input: &[Brick]) -> u32 {
 }
 
 #[aoc(day22, part2)]
-fn part2(input: &[Brick]) -> String {
+fn part2(_input: &[Brick]) -> String {
     todo!()
 }
 
