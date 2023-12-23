@@ -19,7 +19,6 @@ fn parse(input: &str) -> Vec<Brick> {
 type Brick = ((usize, usize, usize), (usize, usize, usize));
 #[aoc(day22, part1)]
 fn part1(input: &[Brick]) -> u32 {
-    println!("{:?}", input);
     let mut final_brick_positions = vec![];
     let mut map = vec![vec![vec![false; 1000]; 1000]; 1000];
     for brick in input {
@@ -38,7 +37,7 @@ fn part1(input: &[Brick]) -> u32 {
             sz -= 1;
             ez -= 1;
         }
-        println!("fallen brick: {:?} {:?}", (sx, sy, sz), (ex, ey, ez));
+        // println!("fallen brick: {:?} {:?}", (sx, sy, sz), (ex, ey, ez));
         final_brick_positions.push(((*sx, *sy, sz), (*ex, *ey, ez)));
         for x in *sx..=*ex {
             for y in *sy..=*ey {
@@ -66,7 +65,7 @@ fn part1(input: &[Brick]) -> u32 {
         for x in (*sx)..=(*ex) {
             for y in (*sy)..=(*ey) {
                 for z in (*sz)..=(*ez) {
-                    map[x][y][z] = false;
+                    // map[x][y][z] = false;
                 }
             }
         }
@@ -117,7 +116,7 @@ fn part1(input: &[Brick]) -> u32 {
 
 #[aoc(day22, part2)]
 fn part2(_input: &[Brick]) -> String {
-    todo!()
+    "".to_string()
 }
 
 #[cfg(test)]

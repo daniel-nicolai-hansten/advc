@@ -1,8 +1,8 @@
-use std::{collections::VecDeque, num::ParseIntError, thread::LocalKey};
+use std::{collections::VecDeque, num::ParseIntError};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
-use rayon::range;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum State {
     Seeds,
