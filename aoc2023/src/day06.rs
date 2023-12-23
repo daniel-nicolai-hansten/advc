@@ -42,24 +42,34 @@ fn part1(input: &(Vec<u64>, Vec<u64>)) -> usize {
 #[aoc(day6, part2)]
 fn part2(input: &(Vec<u64>, Vec<u64>)) -> usize {
     let (times, record_distances) = input;
-    let newtime = times.iter().map(|n| n.to_string()).collect::<String>().parse::<u64>().unwrap();
-    let new_record_distances = record_distances.iter().map(|n| n.to_string()).collect::<String>().parse::<u64>().unwrap();
+    let newtime = times
+        .iter()
+        .map(|n| n.to_string())
+        .collect::<String>()
+        .parse::<u64>()
+        .unwrap();
+    let new_record_distances = record_distances
+        .iter()
+        .map(|n| n.to_string())
+        .collect::<String>()
+        .parse::<u64>()
+        .unwrap();
     let mut num_of_better_times = vec![];
-        let mut distances = vec![];
-        let record = new_record_distances;
-        for speed in 0..newtime {
-            let timeleft = newtime - speed;
-            let distance = speed * timeleft;
-            distances.push((distance, speed));
-        }
-        distances.sort_unstable();
-        let better_times: Vec<(u64, u64)> = distances
-            .into_iter()
-            .filter(|(x, _)| x > &record)
-            .map(|(x1, x2)| (x1, x2))
-            .collect();
-        num_of_better_times.push(better_times.len());
-    
+    let mut distances = vec![];
+    let record = new_record_distances;
+    for speed in 0..newtime {
+        let timeleft = newtime - speed;
+        let distance = speed * timeleft;
+        distances.push((distance, speed));
+    }
+    distances.sort_unstable();
+    let better_times: Vec<(u64, u64)> = distances
+        .into_iter()
+        .filter(|(x, _)| x > &record)
+        .map(|(x1, x2)| (x1, x2))
+        .collect();
+    num_of_better_times.push(better_times.len());
+
     num_of_better_times.iter().product()
 }
 
