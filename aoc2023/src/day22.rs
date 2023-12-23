@@ -10,8 +10,16 @@ fn parse(input: &str) -> Vec<Brick> {
         let (sx, sy, sz) = start.split(",").collect_tuple().unwrap();
         let (ex, ey, ez) = end.split(",").collect_tuple().unwrap();
         ret.push((
-            (sx.parse().unwrap(), sy.parse().unwrap(), sz.parse().unwrap()),
-            (ex.parse().unwrap(), ey.parse().unwrap(), ez.parse().unwrap()),
+            (
+                sx.parse().unwrap(),
+                sy.parse().unwrap(),
+                sz.parse().unwrap(),
+            ),
+            (
+                ex.parse().unwrap(),
+                ey.parse().unwrap(),
+                ez.parse().unwrap(),
+            ),
         ));
     }
     ret
@@ -28,7 +36,7 @@ fn part1(input: &[Brick]) -> u32 {
             // check if brick can fall down
             for x in *sx..=*ex {
                 for y in *sy..=*ey {
-                    if map[x][y][sz - 1] || map[x][y][ez - 1] || ez == 1 || sz == 1 {
+                    if (map[x][y][sz - 1] && map[x][y][ez - 1]) || ez == 1 || sz == 1 {
                         // can't fall down
                         break 'fallloop;
                     }

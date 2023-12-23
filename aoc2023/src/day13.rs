@@ -93,12 +93,32 @@ fn find_mirrors(mirrors: &[Vec<Pos>], smugeval: usize) -> Vec<(usize, Cordinate)
 fn cmp_linepair(mirrormap: &[Pos], row1: usize, row2: usize, dir: &Cordinate) -> usize {
     let (line1, line2): (Vec<_>, Vec<_>) = match dir {
         Cordinate::X => (
-            mirrormap.iter().filter(|p| p.x == row1).map(|p| p.y).sorted().collect(),
-            mirrormap.iter().filter(|p| p.x == row2).map(|p| p.y).sorted().collect(),
+            mirrormap
+                .iter()
+                .filter(|p| p.x == row1)
+                .map(|p| p.y)
+                .sorted()
+                .collect(),
+            mirrormap
+                .iter()
+                .filter(|p| p.x == row2)
+                .map(|p| p.y)
+                .sorted()
+                .collect(),
         ),
         Cordinate::Y => (
-            mirrormap.iter().filter(|p| p.y == row1).map(|p| p.x).sorted().collect(),
-            mirrormap.iter().filter(|p| p.y == row2).map(|p| p.x).sorted().collect(),
+            mirrormap
+                .iter()
+                .filter(|p| p.y == row1)
+                .map(|p| p.x)
+                .sorted()
+                .collect(),
+            mirrormap
+                .iter()
+                .filter(|p| p.y == row2)
+                .map(|p| p.x)
+                .sorted()
+                .collect(),
         ),
     };
 

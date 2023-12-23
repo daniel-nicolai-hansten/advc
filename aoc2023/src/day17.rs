@@ -69,7 +69,13 @@ fn find_route(map: &[Vec<u32>], part: Part) -> u32 {
     }
     currentbest
 }
-fn valid_next_move(map: &[Vec<u32>], dir: Dir, pos: Pos, dircount: u32, part: Part) -> Vec<(Pos, Dir, u32)> {
+fn valid_next_move(
+    map: &[Vec<u32>],
+    dir: Dir,
+    pos: Pos,
+    dircount: u32,
+    part: Part,
+) -> Vec<(Pos, Dir, u32)> {
     let mut ret = vec![];
     let max_y = map.len();
     let max_x = map[0].len();
