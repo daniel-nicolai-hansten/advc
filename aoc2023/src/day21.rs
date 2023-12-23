@@ -162,7 +162,7 @@ fn part1(input: &(Vec<Vec<Garden>>, Pos)) -> usize {
     }
     wq.len()
 }
-use crate::day9::{predict, Dir};
+use crate::day09::{predict, Dir};
 
 #[aoc(day21, part2)]
 fn part2(input: &(Vec<Vec<Garden>>, Pos)) -> i64 {
