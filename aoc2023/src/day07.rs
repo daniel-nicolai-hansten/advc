@@ -230,7 +230,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[test]
     fn part1_example() {
         assert_eq!(part1(&parse(TESTINPUT)), 4);
     }
