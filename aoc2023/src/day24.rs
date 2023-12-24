@@ -14,7 +14,6 @@ fn part2(input: &str) -> String {
     todo!()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
