@@ -5,7 +5,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 fn parse(input: &str) -> Vec<Vec<Terrain>> {
     let mut map = vec![];
 
-    for (y, line) in input.lines().enumerate() {
+    for line in input.lines() {
         let mut ln = vec![];
         for c in line.chars() {
             let trrn = match c {
@@ -24,10 +24,12 @@ fn parse(input: &str) -> Vec<Vec<Terrain>> {
     }
     map
 }
-type Pos = (usize, usize);
+type Pos = (u8, u8);
 trait Coord {
-    fn x(&self) -> usize;
-    fn y(&self) -> usize;
+    fn x(&self) -> u8;
+    fn y(&self) -> u8;
+    fn xus(&self) -> usize;
+    fn yus(&self) -> usize;
     fn pos(&self) -> Pos {
         (self.x(), self.y())
     }
@@ -65,10 +67,16 @@ trait Coord {
     }
 }
 impl Coord for Pos {
-    fn x(&self) -> usize {
+    fn xus(&self) -> usize {
+        self.0 as usize
+    }
+    fn yus(&self) -> usize {
+        self.1 as usize
+    }
+    fn x(&self) -> u8 {
         self.0
     }
-    fn y(&self) -> usize {
+    fn y(&self) -> u8 {
         self.1
     }
 }
@@ -86,7 +94,7 @@ fn part1(map: &[Vec<Terrain>]) -> u32 {
     'outer: for (y, line) in map.iter().enumerate() {
         for (x, c) in line.iter().enumerate() {
             if *c == Terrain::Path {
-                start = (x, y);
+                start = (x as u8, y as u8);
                 break 'outer;
             }
         }
@@ -94,20 +102,20 @@ fn part1(map: &[Vec<Terrain>]) -> u32 {
     'outer: for (y, line) in map.iter().enumerate().rev() {
         for (x, c) in line.iter().enumerate().rev() {
             if *c == Terrain::Path {
-                end = (x, y);
+                end = (x as u8, y as u8);
                 break 'outer;
             }
         }
     }
 
     let visited = vec![start];
-    let mut wq = VecDeque::new();
-    wq.push_back(RouteState {
+    let mut wq = Vec::new();
+    wq.push(RouteState {
         steps: 0,
         position: start,
         visited,
     });
-    while let Some(mut state) = wq.pop_front() {
+    while let Some(mut state) = wq.pop() {
         if state.position == end {
             results.push(state.steps);
             continue;
@@ -115,7 +123,7 @@ fn part1(map: &[Vec<Terrain>]) -> u32 {
         state.visited.push(state.position);
         let mut valid_next = vec![];
         for n in state.position.neighbors() {
-            match (state.visited.contains(&n), map[n.y()][n.x()]) {
+            match (state.visited.contains(&n), map[n.yus()][n.xus()]) {
                 (true, _) => {}
                 (false, Terrain::Path) => valid_next.push(n),
                 (false, Terrain::Forest) => {}
@@ -146,7 +154,7 @@ fn part1(map: &[Vec<Terrain>]) -> u32 {
         if !valid_next.is_empty() {
             let nextpos = valid_next.pop().unwrap();
             for pos in valid_next {
-                wq.push_back(RouteState {
+                wq.push(RouteState {
                     steps: state.steps + 1,
                     position: pos,
                     visited: state.visited.clone(),
@@ -154,7 +162,7 @@ fn part1(map: &[Vec<Terrain>]) -> u32 {
             }
             state.steps += 1;
             state.position = nextpos;
-            wq.push_back(state);
+            wq.push(state);
         }
     }
     println!("{results:?}");
@@ -169,7 +177,7 @@ fn part2(map: &[Vec<Terrain>]) -> u32 {
     'outer: for (y, line) in map.iter().enumerate() {
         for (x, c) in line.iter().enumerate() {
             if *c == Terrain::Path {
-                start = (x, y);
+                start = (x as u8, y as u8);
                 break 'outer;
             }
         }
@@ -177,7 +185,7 @@ fn part2(map: &[Vec<Terrain>]) -> u32 {
     'outer: for (y, line) in map.iter().enumerate().rev() {
         for (x, c) in line.iter().enumerate().rev() {
             if *c == Terrain::Path {
-                end = (x, y);
+                end = (x as u8, y as u8);
                 break 'outer;
             }
         }
@@ -198,7 +206,7 @@ fn part2(map: &[Vec<Terrain>]) -> u32 {
         state.visited.push(state.position);
         let mut valid_next = vec![];
         for n in state.position.neighbors() {
-            match (state.visited.contains(&n), map[n.y()][n.x()]) {
+            match (state.visited.contains(&n), map[n.yus()][n.xus()]) {
                 (true, _) => {}
                 (false, Terrain::Path | Terrain::SteepSlope(_)) => valid_next.push(n),
                 (false, Terrain::Forest) => {}
@@ -218,7 +226,6 @@ fn part2(map: &[Vec<Terrain>]) -> u32 {
             wq.push_back(state);
         }
     }
-    println!("{results:?}");
     results.iter().max().unwrap().to_owned()
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
