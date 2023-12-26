@@ -10,16 +10,8 @@ fn parse(input: &str) -> Vec<Brick> {
         let (sx, sy, sz) = start.split(",").collect_tuple().unwrap();
         let (ex, ey, ez) = end.split(",").collect_tuple().unwrap();
         ret.push((
-            (
-                sx.parse().unwrap(),
-                sy.parse().unwrap(),
-                sz.parse().unwrap(),
-            ),
-            (
-                ex.parse().unwrap(),
-                ey.parse().unwrap(),
-                ez.parse().unwrap(),
-            ),
+            (sx.parse().unwrap(), sy.parse().unwrap(), sz.parse().unwrap()),
+            (ex.parse().unwrap(), ey.parse().unwrap(), ez.parse().unwrap()),
         ));
     }
     ret
@@ -107,7 +99,7 @@ fn part1(input: &[Brick]) -> u32 {
                 }
             }
         }
-        println!("numfall: {}", numfall);
+        // println!("numfall: {}", numfall);
         if numfall == 0 {
             bricks_disintigrate += 1;
         }
