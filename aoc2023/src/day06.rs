@@ -25,7 +25,6 @@ fn part1(input: &(Vec<u64>, Vec<u64>)) -> u64 {
         let better_times = solve(*time, record);
         num_of_better_times.push(better_times);
     }
-    println!("{num_of_better_times:?}");
     num_of_better_times.iter().product()
 }
 
