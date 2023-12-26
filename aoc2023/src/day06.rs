@@ -1,4 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+
 #[aoc_generator(day6)]
 fn parse(file: &str) -> (Vec<u64>, Vec<u64>) {
     let input: Vec<&str> = file.lines().collect();
@@ -16,31 +17,20 @@ fn parse(file: &str) -> (Vec<u64>, Vec<u64>) {
 }
 
 #[aoc(day6, part1)]
-fn part1(input: &(Vec<u64>, Vec<u64>)) -> usize {
+fn part1(input: &(Vec<u64>, Vec<u64>)) -> u64 {
     let (times, record_distances) = input;
     let mut num_of_better_times = vec![];
     for (i, time) in times.iter().enumerate() {
-        let mut distances = vec![];
         let record = record_distances[i];
-        for speed in 0..*time {
-            let timeleft = time - speed;
-            let distance = speed * timeleft;
-            distances.push((distance, speed));
-        }
-        distances.sort_unstable();
-        let better_times: Vec<(u64, u64)> = distances
-            .into_iter()
-            .filter(|(x, _)| x > &record)
-            .map(|(x1, x2)| (x1, x2))
-            .collect();
-        // println!("better: {better_times:?}");
-        num_of_better_times.push(better_times.len());
+        let better_times = solve(*time, record);
+        num_of_better_times.push(better_times);
     }
+    println!("{num_of_better_times:?}");
     num_of_better_times.iter().product()
 }
 
 #[aoc(day6, part2)]
-fn part2(input: &(Vec<u64>, Vec<u64>)) -> usize {
+fn part2(input: &(Vec<u64>, Vec<u64>)) -> u64 {
     let (times, record_distances) = input;
     let newtime = times
         .iter()
@@ -54,25 +44,18 @@ fn part2(input: &(Vec<u64>, Vec<u64>)) -> usize {
         .collect::<String>()
         .parse::<u64>()
         .unwrap();
-    let mut num_of_better_times = vec![];
-    let mut distances = vec![];
-    let record = new_record_distances;
-    for speed in 0..newtime {
-        let timeleft = newtime - speed;
-        let distance = speed * timeleft;
-        distances.push((distance, speed));
-    }
-    distances.sort_unstable();
-    let better_times: Vec<(u64, u64)> = distances
-        .into_iter()
-        .filter(|(x, _)| x > &record)
-        .map(|(x1, x2)| (x1, x2))
-        .collect();
-    num_of_better_times.push(better_times.len());
 
-    num_of_better_times.iter().product()
+    solve(newtime, new_record_distances)
 }
 
+fn solve(tim: u64, winning_distance: u64) -> u64 {
+    let time = tim as f64;
+    let distance = winning_distance as f64;
+    let last = (time / 2.0) - ((time / 2.0).powi(2) - distance).sqrt();
+    let first = (time / 2.0) + ((time / 2.0).powi(2) - distance).sqrt();
+    let res = first.ceil() - last.floor();
+    res as u64 - 1
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,5 +69,10 @@ Distance:  9  40  200";
     #[test]
     fn part2_example() {
         assert_eq!(part2(&parse(TESTINPUT)), 71503);
+    }
+    #[test]
+    fn solver_part2_example() {
+        let res = solve(71530, 940200);
+        assert_eq!(res, 71503);
     }
 }
