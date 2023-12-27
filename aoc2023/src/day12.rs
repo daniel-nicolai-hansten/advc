@@ -12,10 +12,7 @@ fn parse(input: &str) -> Vec<(Vec<Spring>, Vec<usize>)> {
     for line in input.lines() {
         let splits: Vec<&str> = line.trim_start().split_ascii_whitespace().collect();
         let gearstates: Vec<Spring> = splits[0].chars().map(gearsplit).collect();
-        let nums: Vec<usize> = splits[1]
-            .split(",")
-            .map(|x| x.parse::<usize>().unwrap())
-            .collect();
+        let nums: Vec<usize> = splits[1].split(",").map(|x| x.parse::<usize>().unwrap()).collect();
         ret.push((gearstates, nums));
     }
     ret
@@ -32,10 +29,7 @@ fn parse2(input: &str) -> Vec<(Vec<Spring>, Vec<usize>)> {
     for line in input.lines() {
         let splits: Vec<&str> = line.trim_start().split_ascii_whitespace().collect();
         let gearstates: Vec<Spring> = splits[0].chars().map(gearsplit).collect();
-        let nums: Vec<usize> = splits[1]
-            .split(",")
-            .map(|x| x.parse::<usize>().unwrap())
-            .collect();
+        let nums: Vec<usize> = splits[1].split(",").map(|x| x.parse::<usize>().unwrap()).collect();
         let mut gearstates_p2: Vec<Spring> = vec![];
         let mut nums_p2: Vec<usize> = vec![];
         for i in 0..5 {
@@ -78,10 +72,7 @@ fn count_variants(springs: &[Spring], counts: &[usize]) -> usize {
         for (group, &max_count) in counts.iter().enumerate() {
             for count in 0..=max_count {
                 for c in [S::Working, S::Broken] {
-                    match (
-                        springs[springnum] == c || springs[springnum] == S::Unknown,
-                        c,
-                    ) {
+                    match (springs[springnum] == c || springs[springnum] == S::Unknown, c) {
                         (true, S::Working) if count == 0 => {
                             dp[springnum][group][count] += dp[springnum + 1][group][0];
                         }

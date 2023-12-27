@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 
@@ -18,105 +20,193 @@ fn parse(input: &str) -> Vec<Brick> {
 }
 type Brick = ((usize, usize, usize), (usize, usize, usize));
 #[aoc(day22, part1)]
-fn part1(input: &[Brick]) -> u32 {
-    let mut final_brick_positions = vec![];
+fn part1(input: &[Brick]) -> usize {
+    let mut brick_positions = vec![];
     let mut map = vec![vec![vec![false; 1000]; 1000]; 1000];
-    for brick in input {
-        let ((sx, sy, mut sz), (ex, ey, mut ez)) = brick;
-
-        'fallloop: loop {
-            // check if brick can fall down
-            for x in *sx..=*ex {
-                for y in *sy..=*ey {
-                    if (map[x][y][sz - 1] && map[x][y][ez - 1]) || ez == 1 || sz == 1 {
-                        // can't fall down
-                        break 'fallloop;
-                    }
-                }
-            }
-            sz -= 1;
-            ez -= 1;
-        }
-        // println!("fallen brick: {:?} {:?}", (sx, sy, sz), (ex, ey, ez));
-        final_brick_positions.push(((*sx, *sy, sz), (*ex, *ey, ez)));
+    let mut brickindex = HashMap::new();
+    //draw bricks
+    for ((sx, sy, sz), (ex, ey, ez)) in input.iter() {
+        brick_positions.push(((*sx, *sy, *sz), (*ex, *ey, *ez)));
         for x in *sx..=*ex {
             for y in *sy..=*ey {
-                for z in sz..=ez {
+                for z in *sz..=*ez {
                     map[x][y][z] = true;
                 }
             }
         }
     }
-    //print map from side
-    // let mut hasbrick = false;
-    // for z in (0..10).rev() {
-    //     for y in 0..10 {
-    //         for x in 0..10 {
-    //             hasbrick = hasbrick || map[x][y][z]
-    //         }
-    //         print!("{}", if hasbrick { "#" } else { "." });
-    //         hasbrick = false;
-    //     }
-    //     println!();
-    // }
-    let mut bricks_disintigrate = 0;
-    for brick in &final_brick_positions {
-        let ((sx, sy, sz), (ex, ey, ez)) = brick;
-        for x in (*sx)..=(*ex) {
-            for y in (*sy)..=(*ey) {
-                for z in (*sz)..=(*ez) {
-                    // map[x][y][z] = false;
-                }
-            }
-        }
-        let mut numfall = 0;
-        'outer: for brick2 in final_brick_positions.iter().filter(|b| *b != brick) {
-            let mut canfall = true;
-            let ((sx, sy, sz), (ex, ey, ez)) = brick2;
-            for x in (*sx)..=(*ex) {
-                for y in (*sy)..=(*ey) {
-                    for z in (*sz)..=(*ez) {
+    //Drop bricks
+    loop {
+        let mut brick_fallen = false;
+        for (_brick_index, brick) in brick_positions.iter_mut().enumerate() {
+            let ((sx, sy, sz), (ex, ey,  ez)) = brick;
+            for x in *sx..=*ex {
+                for y in *sy..=*ey {
+                    for z in *sz..=*ez {
                         map[x][y][z] = false;
                     }
                 }
             }
-            for x in (*sx)..=(*ex) {
-                for y in (*sy)..=(*ey) {
-                    if map[x][y][*sz - 1] || map[x][y][*ez - 1] || *ez == 1 || *sz == 1 {
-                        // can't fall down
-                        canfall = false;
+            'fallloop: loop {
+                // check if brick can fall down
+                for x in *sx..=*ex {
+                    for y in *sy..=*ey {
+                        if map[x][y][*sz - 1] || map[x][y][*ez - 1] || *ez == 1 || *sz == 1 {
+                            // can't fall down
+                            break 'fallloop;
+                        }
                     }
                 }
+                *sz -= 1;
+                *ez -= 1;
+                brick_fallen = true;
             }
-            if canfall {
-                numfall += 1;
-            }
-            for x in (*sx)..=(*ex) {
-                for y in (*sy)..=(*ey) {
-                    for z in (*sz)..=(*ez) {
+
+            for x in *sx..=*ex {
+                for y in *sy..=*ey {
+                    for z in *sz..=*ez {
                         map[x][y][z] = true;
                     }
                 }
             }
         }
-        // println!("numfall: {}", numfall);
-        if numfall == 0 {
-            bricks_disintigrate += 1;
+        if !brick_fallen {
+            break;
         }
-        for x in (*sx)..=(*ex) {
-            for y in (*sy)..=(*ey) {
-                for z in (*sz)..=(*ez) {
+    }
+    println!("{:?}", brick_positions.len());
+for (idx, ((sx, sy, sz), (ex, ey,  ez))) in brick_positions.iter().enumerate() {
+    for x in *sx..=*ex {
+        for y in *sy..=*ey {
+            for z in *sz..=*ez {
+                brickindex.insert((x,y,z), idx);
+            }
+        }
+    }
+}
+    let mut single_list = vec![0; brick_positions.len()];
+    for (idx, brick) in brick_positions.iter().enumerate() {
+        let mut bricks_under = vec![];
+        let ((sx, sy, sz), (ex, ey, ez)) = brick;
+        for x in *sx..=*ex {
+            for y in *sy..=*ey {
+                for z in *sz..=*ez {
+                    let block_over = (x, y, z - 1);
+                    if let Some(brick_idx) = brickindex.get(&block_over) {
+                        if *brick_idx != idx {
+                            bricks_under.push(*brick_idx);
+                        }
+                    }
+                }
+            }
+        }
+        println!("idx: {}  resting on: {:?}, brick {:?}", idx, bricks_under, brick);
+        if bricks_under.iter().unique().count() == 1 {
+            for b in bricks_under {
+                let ptr = single_list.get_mut(b).unwrap();
+                *ptr += 1;
+            }
+        }
+
+    }
+
+    let bricks_disintigrate = single_list.iter().filter(|i| **i == 0).count();
+    bricks_disintigrate
+}
+
+#[aoc(day22, part2)]
+fn part2(input: &[Brick]) -> usize {
+    let mut brick_positions = vec![];
+    let mut map = vec![vec![vec![false; 1000]; 1000]; 1000];
+    let mut brickindex = HashMap::new();
+    //draw bricks
+    for ((sx, sy, sz), (ex, ey, ez)) in input.iter() {
+        brick_positions.push(((*sx, *sy, *sz), (*ex, *ey, *ez)));
+        for x in *sx..=*ex {
+            for y in *sy..=*ey {
+                for z in *sz..=*ez {
                     map[x][y][z] = true;
                 }
             }
         }
     }
-    bricks_disintigrate
-}
+    //Drop bricks
+    loop {
+        let mut brick_fallen = false;
+        for (_brick_index, brick) in brick_positions.iter_mut().enumerate() {
+            let ((sx, sy, sz), (ex, ey,  ez)) = brick;
+            for x in *sx..=*ex {
+                for y in *sy..=*ey {
+                    for z in *sz..=*ez {
+                        map[x][y][z] = false;
+                    }
+                }
+            }
+            'fallloop: loop {
+                // check if brick can fall down
+                for x in *sx..=*ex {
+                    for y in *sy..=*ey {
+                        if map[x][y][*sz - 1] || map[x][y][*ez - 1] || *ez == 1 || *sz == 1 {
+                            // can't fall down
+                            break 'fallloop;
+                        }
+                    }
+                }
+                *sz -= 1;
+                *ez -= 1;
+                brick_fallen = true;
+            }
 
-#[aoc(day22, part2)]
-fn part2(_input: &[Brick]) -> String {
-    "".to_string()
+            for x in *sx..=*ex {
+                for y in *sy..=*ey {
+                    for z in *sz..=*ez {
+                        map[x][y][z] = true;
+                    }
+                }
+            }
+        }
+        if !brick_fallen {
+            break;
+        }
+    }
+    println!("{:?}", brick_positions.len());
+for (idx, ((sx, sy, sz), (ex, ey,  ez))) in brick_positions.iter().enumerate() {
+    for x in *sx..=*ex {
+        for y in *sy..=*ey {
+            for z in *sz..=*ez {
+                brickindex.insert((x,y,z), idx);
+            }
+        }
+    }
+}
+    let mut single_list = vec![0; brick_positions.len()];
+    for (idx, brick) in brick_positions.iter().enumerate() {
+        let mut bricks_under = vec![];
+        let ((sx, sy, sz), (ex, ey, ez)) = brick;
+        for x in *sx..=*ex {
+            for y in *sy..=*ey {
+                for z in *sz..=*ez {
+                    let block_over = (x, y, z - 1);
+                    if let Some(brick_idx) = brickindex.get(&block_over) {
+                        if *brick_idx != idx {
+                            bricks_under.push(*brick_idx);
+                        }
+                    }
+                }
+            }
+        }
+        println!("idx: {}  resting on: {:?}, brick {:?}", idx, bricks_under, brick);
+        if bricks_under.iter().unique().count() == 1 {
+            for b in bricks_under {
+                let ptr = single_list.get_mut(b).unwrap();
+                *ptr += 1;
+            }
+        }
+
+    }
+
+    let bricks_disintigrate = single_list.iter().filter(|i| **i == 0).count();
+    bricks_disintigrate
 }
 
 #[cfg(test)]

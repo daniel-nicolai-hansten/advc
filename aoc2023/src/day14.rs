@@ -62,8 +62,6 @@ fn part2(rockmap: &[Vec<Rock>]) -> usize {
     let rest = end - last_i + leftover;
     let cycles_left = rest % patternsize;
     let arridx = loadarr.len() - (patternsize - cycles_left + 1);
-    // println!("{:?}   {}", &loadarr[arridx..], cycles_left);
-
     loadarr[arridx]
 }
 

@@ -86,11 +86,7 @@ type SeedRange = (u64, u64, State);
 #[aoc(day5, part2)]
 fn part2(input: &(Vec<RangeMap>, Vec<u64>)) -> u64 {
     let (range_maps, seeds) = input;
-    let seed_ranges: Vec<SeedRange> = seeds
-        .iter()
-        .tuples()
-        .map(|(x, y)| (*x, *y, State::Seeds))
-        .collect();
+    let seed_ranges: Vec<SeedRange> = seeds.iter().tuples().map(|(x, y)| (*x, *y, State::Seeds)).collect();
     let mut wq: VecDeque<SeedRange> = VecDeque::new();
     let mut locations = vec![];
     for seed in seed_ranges {
@@ -134,8 +130,7 @@ enum RangeMap {
 
 impl RangeMap {
     fn try_from(value: &str, state: State) -> Option<Self> {
-        let nums: Vec<Result<u64, ParseIntError>> =
-            value.split_ascii_whitespace().map(|x| x.parse()).collect();
+        let nums: Vec<Result<u64, ParseIntError>> = value.split_ascii_whitespace().map(|x| x.parse()).collect();
         let range = nums.get(2)?.clone().ok()?;
         let dest = nums.get(0)?.clone().ok()?;
         let source = nums.get(1)?.clone().ok()?;
@@ -178,38 +173,14 @@ fn find_in_rangemaps(maps: &[RangeMap], s: u64, state: State) -> u64 {
     use State as S;
     let mut ret = s;
     let filter_map: Vec<&RangeMap> = match state {
-        S::Seeds => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Seed2Soil(_)))
-            .collect(),
-        S::Soil => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Soil2Fertilizer(_)))
-            .collect(),
-        S::Fertilizer => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Fertilizer2Water(_)))
-            .collect(),
-        S::Water => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Water2Light(_)))
-            .collect(),
-        S::Light => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Light2Temperature(_)))
-            .collect(),
-        S::Temperature => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Temp2Humidity(_)))
-            .collect(),
-        S::Humidity => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Humidity2Location(_)))
-            .collect(),
-        S::Location => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Humidity2Location(_)))
-            .collect(),
+        S::Seeds => maps.iter().filter(|x| matches!(x, RM::Seed2Soil(_))).collect(),
+        S::Soil => maps.iter().filter(|x| matches!(x, RM::Soil2Fertilizer(_))).collect(),
+        S::Fertilizer => maps.iter().filter(|x| matches!(x, RM::Fertilizer2Water(_))).collect(),
+        S::Water => maps.iter().filter(|x| matches!(x, RM::Water2Light(_))).collect(),
+        S::Light => maps.iter().filter(|x| matches!(x, RM::Light2Temperature(_))).collect(),
+        S::Temperature => maps.iter().filter(|x| matches!(x, RM::Temp2Humidity(_))).collect(),
+        S::Humidity => maps.iter().filter(|x| matches!(x, RM::Humidity2Location(_))).collect(),
+        S::Location => maps.iter().filter(|x| matches!(x, RM::Humidity2Location(_))).collect(),
     };
     for map in filter_map {
         if let Some(d) = map.in_range(s) {
@@ -225,38 +196,14 @@ fn range_in_rangemaps(maps: &[RangeMap], s: SeedRange) -> Vec<SeedRange> {
     let mut seeds = s;
     let mut ret = vec![];
     let filter_map: Vec<&RangeMap> = match seeds.2 {
-        S::Seeds => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Seed2Soil(_)))
-            .collect(),
-        S::Soil => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Soil2Fertilizer(_)))
-            .collect(),
-        S::Fertilizer => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Fertilizer2Water(_)))
-            .collect(),
-        S::Water => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Water2Light(_)))
-            .collect(),
-        S::Light => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Light2Temperature(_)))
-            .collect(),
-        S::Temperature => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Temp2Humidity(_)))
-            .collect(),
-        S::Humidity => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Humidity2Location(_)))
-            .collect(),
-        S::Location => maps
-            .iter()
-            .filter(|x| matches!(x, RM::Humidity2Location(_)))
-            .collect(),
+        S::Seeds => maps.iter().filter(|x| matches!(x, RM::Seed2Soil(_))).collect(),
+        S::Soil => maps.iter().filter(|x| matches!(x, RM::Soil2Fertilizer(_))).collect(),
+        S::Fertilizer => maps.iter().filter(|x| matches!(x, RM::Fertilizer2Water(_))).collect(),
+        S::Water => maps.iter().filter(|x| matches!(x, RM::Water2Light(_))).collect(),
+        S::Light => maps.iter().filter(|x| matches!(x, RM::Light2Temperature(_))).collect(),
+        S::Temperature => maps.iter().filter(|x| matches!(x, RM::Temp2Humidity(_))).collect(),
+        S::Humidity => maps.iter().filter(|x| matches!(x, RM::Humidity2Location(_))).collect(),
+        S::Location => maps.iter().filter(|x| matches!(x, RM::Humidity2Location(_))).collect(),
     };
     for map in filter_map {
         let (_dest, source, range) = map.range();
@@ -273,11 +220,7 @@ fn range_in_rangemaps(maps: &[RangeMap], s: SeedRange) -> Vec<SeedRange> {
                 seeds.1 = seed_end - seeds.0;
                 ret.push(new_seed);
             } else {
-                let new_seed = (
-                    map.in_range(seed_start).unwrap(),
-                    seed_end - seed_start,
-                    state,
-                );
+                let new_seed = (map.in_range(seed_start).unwrap(), seed_end - seed_start, state);
                 seeds.0 = seed_end;
                 seeds.1 = 0;
                 ret.push(new_seed);
