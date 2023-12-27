@@ -1,5 +1,5 @@
-use std::collections::{VecDeque,  HashMap};
 use std::cmp::max;
+use std::collections::{HashMap, VecDeque};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 #[aoc_generator(day23)]
@@ -56,8 +56,13 @@ trait Coord {
     }
     fn neighbors(&self) -> Vec<(Pos, Dir)> {
         let mut n = vec![];
-        for p in [(self.up(), Dir::Up), (self.down(), Dir::Down), (self.left(), Dir::Left), (self.right(), Dir::Right) ] {
-            if let( Some(p), dir) = p {
+        for p in [
+            (self.up(), Dir::Up),
+            (self.down(), Dir::Down),
+            (self.left(), Dir::Left),
+            (self.right(), Dir::Right),
+        ] {
+            if let (Some(p), dir) = p {
                 n.push((p, dir));
             }
         }
@@ -166,82 +171,81 @@ fn part1(map: &[Vec<Terrain>]) -> u32 {
             wq.push(state);
         }
     }
-    println!("{results:?}");
     results.iter().max().unwrap().to_owned()
 }
 
 #[aoc(day23, part2)]
 fn part2(map: &[Vec<Terrain>]) -> u32 {
-    let mut start = (0, 0);
-    let mut end = (0, 0);
-    let mut choke_points= HashMap::new();
     let mut max_steps = 0;
+    if false {
+        let mut start = (0, 0);
+        let mut end = (0, 0);
+        let mut choke_points = HashMap::new();
 
-    // let mut results = vec![];
-    'outer: for (y, line) in map.iter().enumerate() {
-        for (x, c) in line.iter().enumerate() {
-            if *c == Terrain::Path {
-                start = (x as u8, y as u8);
-                break 'outer;
+        // let mut results = vec![];
+        'outer: for (y, line) in map.iter().enumerate() {
+            for (x, c) in line.iter().enumerate() {
+                if *c == Terrain::Path {
+                    start = (x as u8, y as u8);
+                    break 'outer;
+                }
             }
         }
-    }
-    'outer: for (y, line) in map.iter().enumerate().rev() {
-        for (x, c) in line.iter().enumerate().rev() {
-            if *c == Terrain::Path {
-                end = (x as u8, y as u8);
-                break 'outer;
+        'outer: for (y, line) in map.iter().enumerate().rev() {
+            for (x, c) in line.iter().enumerate().rev() {
+                if *c == Terrain::Path {
+                    end = (x as u8, y as u8);
+                    break 'outer;
+                }
             }
         }
-    }
 
-    let visited = vec![start];
-    let mut wq = VecDeque::new();
-    wq.push_back(RouteState {
-        steps: 0,
-        position: start,
-        visited,
-    });
-    while let Some(mut state) = wq.pop_front() {
-        if state.position == end {
-            max_steps = max(state.steps, max_steps);
-            println!("end at: {}  max:{}", state.steps, max_steps);
-            continue;
-        }
-        state.visited.push(state.position);
-        let mut valid_next = vec![];
-        for (n, dir) in state.position.neighbors() {
-            match (state.visited.contains(&n), map[n.yus()][n.xus()]) {
-                (true, _) => {}
-                (false, Terrain::Path | Terrain::SteepSlope(_)) => valid_next.push((n, dir)),
-                (false, Terrain::Forest) => {}
+        let visited = vec![start];
+        let mut wq = VecDeque::new();
+        wq.push_back(RouteState {
+            steps: 0,
+            position: start,
+            visited,
+        });
+        while let Some(mut state) = wq.pop_front() {
+            if state.position == end {
+                max_steps = max(state.steps, max_steps);
+                println!("end at: {}  max:{}", state.steps, max_steps);
+                continue;
             }
-        }
-        if !valid_next.is_empty() {
-            let (nextpos, dir) = valid_next.pop().unwrap();
-            let mut branch = false;
-            for (pos, _dir) in valid_next {
-                branch = true;
-                wq.push_back(RouteState {
-                    steps: state.steps + 1,
-                    position: pos,
-                    visited: state.visited.clone(),
-                });
+            state.visited.push(state.position);
+            let mut valid_next = vec![];
+            for (n, dir) in state.position.neighbors() {
+                match (state.visited.contains(&n), map[n.yus()][n.xus()]) {
+                    (true, _) => {}
+                    (false, Terrain::Path | Terrain::SteepSlope(_)) => valid_next.push((n, dir)),
+                    (false, Terrain::Forest) => {}
+                }
             }
-            state.steps += 1;
-            state.position = nextpos;
-            if let true = branch {
-                wq.push_front(state);
-            } else if let Some(steps) = choke_points.get(&(state.position, dir)) {
-                if *steps < state.steps {
-                    choke_points.insert((state.position, dir), state.steps);
+            if !valid_next.is_empty() {
+                let (nextpos, dir) = valid_next.pop().unwrap();
+                let mut branch = false;
+                for (pos, _dir) in valid_next {
+                    branch = true;
+                    wq.push_back(RouteState {
+                        steps: state.steps + 1,
+                        position: pos,
+                        visited: state.visited.clone(),
+                    });
+                }
+                state.steps += 1;
+                state.position = nextpos;
+                if let true = branch {
+                    wq.push_front(state);
+                } else if let Some(steps) = choke_points.get(&(state.position, dir)) {
+                    if *steps < state.steps {
+                        choke_points.insert((state.position, dir), state.steps);
+                        wq.push_front(state);
+                    }
+                } else {
                     wq.push_front(state);
                 }
-            } else {
-                wq.push_front(state);
             }
-            
-            
         }
     }
     max_steps

@@ -189,8 +189,7 @@ fn part2(input: &(Vec<Vec<Garden>>, Pos)) -> i64 {
             let pos = wq.pop_front().unwrap();
             for nxp in pos.get_neighbor(ymax, xmax) {
                 if map[nxp.y % ymax][nxp.x % xmax] == Garden::Plot
-                    && ((i % 2 == 1 && !visited_odd.contains(&nxp))
-                        || (i % 2 == 0 && !visited_even.contains(&nxp)))
+                    && ((i % 2 == 1 && !visited_odd.contains(&nxp)) || (i % 2 == 0 && !visited_even.contains(&nxp)))
                 {
                     if i % 2 == 1 {
                         visited_odd.insert(nxp);

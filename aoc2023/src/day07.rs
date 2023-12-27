@@ -113,10 +113,7 @@ impl CardHand {
         }
     }
     fn jokers(&self) -> usize {
-        self.cards
-            .iter()
-            .filter(|c| **c == CardTypes::Joker)
-            .count()
+        self.cards.iter().filter(|c| **c == CardTypes::Joker).count()
     }
     fn cards_counted(&self) -> Vec<usize> {
         self.cards

@@ -18,10 +18,7 @@ fn parse(input: &str) -> (Vec<char>, Vec<MapNode>, Vec<u64>, Vec<u64>) {
                     let chars: Vec<char> = line.chars().collect();
                     let splits: Vec<&str> = line.split(" = ").collect();
                     let name = u64::from_str_radix(splits[0], 36).unwrap();
-                    let splits: Vec<&str> = splits[1]
-                        .trim_matches(|c| c == '(' || c == ')')
-                        .split(", ")
-                        .collect();
+                    let splits: Vec<&str> = splits[1].trim_matches(|c| c == '(' || c == ')').split(", ").collect();
                     let left = u64::from_str_radix(splits[0], 36).unwrap();
                     let right = u64::from_str_radix(splits[1], 36).unwrap();
                     maps.push(MapNode { name, left, right });
