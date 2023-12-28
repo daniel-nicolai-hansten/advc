@@ -1,19 +1,18 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 #[aoc_generator(day25)]
-fn parse(input: &str) -> String {
+fn parse(_input: &str) -> String {
     todo!()
 }
 
 #[aoc(day25, part1)]
-fn part1(input: &str) -> String {
+fn part1(_input: &str) -> String {
     todo!()
 }
 
 #[aoc(day25, part2)]
-fn part2(input: &str) -> String {
+fn part2(_input: &str) -> String {
     todo!()
 }
-
 
 #[cfg(test)]
 mod tests {
