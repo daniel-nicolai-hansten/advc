@@ -3,11 +3,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 fn parse(input: &str) -> Vec<Vec<i64>> {
     input
         .lines()
-        .map(|l| {
-            l.split_ascii_whitespace()
-                .map(|x| x.parse().unwrap())
-                .collect()
-        })
+        .map(|l| l.split_ascii_whitespace().map(|x| x.parse().unwrap()).collect())
         .collect()
 }
 
