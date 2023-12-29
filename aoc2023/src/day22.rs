@@ -6,7 +6,7 @@ use itertools::Itertools;
 #[aoc_generator(day22)]
 fn parse(input: &str) -> Vec<Brick> {
     let mut ret = vec![];
-    let mut map = vec![vec![vec![false; 600]; 600]; 600];
+    let mut map = vec![vec![vec![false; 350]; 40]; 40];
     for line in input.lines() {
         let line = line.trim();
         let (start, end) = line.split_once("~").unwrap();
@@ -154,7 +154,6 @@ fn part2(brick_positions: &[Brick]) -> usize {
     for idx in 0..brick_tree.len() {
         let mut bricks_falling = vec![idx];
         loop {
-            let mut brickadded = false;
             for (b_idx, brick) in brick_tree.iter().enumerate() {
                 match (
                     brick.len(),
@@ -163,14 +162,11 @@ fn part2(brick_positions: &[Brick]) -> usize {
                     (0, _) => (),
                     (_, 0) if !bricks_falling.contains(&b_idx) => {
                         bricks_falling.push(b_idx);
-                        brickadded = true;
                     }
                     (_, _) => (),
                 }
             }
-            if !brickadded {
-                break;
-            }
+            break;
         }
 
         // println!("{}", bricks_falling.len() -1);

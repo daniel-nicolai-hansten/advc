@@ -21,6 +21,8 @@ mod day20;
 mod day21;
 mod day22;
 mod day23;
+mod day24;
+// mod day24_chris;
 mod day25;
 
 extern crate aoc_runner;
