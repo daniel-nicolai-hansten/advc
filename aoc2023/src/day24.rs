@@ -104,17 +104,15 @@ fn parse(input: &str) -> Vec<Hail<i128>> {
 #[aoc(day24, part1)]
 fn part1(input: &[Hail<i128>]) -> usize {
     let mut tot_crossings = 0;
-    for hail in input {
-        for hail2 in input {
-            match hail.find_crossing(hail2) {
+    for  (hail1, hail2)  in input.iter().tuple_combinations() {
+            match hail1.find_crossing(hail2) {
                 Intersection::Point(pos) if pos.in_area(MIN as f64, MAX as f64) => {
                     tot_crossings += 1;
                 }
                 _ => (),
             }
-        }
-    }
-    tot_crossings / 2
+            }
+    tot_crossings 
 }
 
 #[aoc(day24, part2)]
