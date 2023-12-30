@@ -13,21 +13,19 @@ fn parse2(input: &str) -> Vec<Pos> {
 #[aoc(day11, part1)]
 fn part1(stars: &[Pos]) -> usize {
     let mut distances = 0;
-    for star in stars {
-        let star_result = star.star_distances(stars);
-        distances += star_result.iter().sum::<usize>();
+    for (star1, star2) in stars.iter().tuple_combinations() {
+        distances += star1.distance(star2);
     }
-    distances / 2
+    distances
 }
 
 #[aoc(day11, part2)]
 fn part2(stars: &[Pos]) -> usize {
     let mut distances = 0;
-    for star in stars {
-        let star_result = star.star_distances(stars);
-        distances += star_result.iter().sum::<usize>();
+    for (star1, star2) in stars.iter().tuple_combinations() {
+        distances += star1.distance(star2);
     }
-    distances / 2
+    distances
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Hash, Clone, Copy)]
@@ -40,15 +38,6 @@ impl Pos {
         let x_diff = max(self.x, other.x) - min(self.x, other.x);
         let y_diff = max(self.y, other.y) - min(self.y, other.y);
         x_diff + y_diff
-    }
-    fn star_distances(&self, stars: &[Pos]) -> Vec<usize> {
-        let mut ret = vec![];
-        for star in stars {
-            if star != self {
-                ret.push(self.distance(star));
-            }
-        }
-        ret
     }
 }
 

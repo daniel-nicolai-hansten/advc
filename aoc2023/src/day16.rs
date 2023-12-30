@@ -167,13 +167,28 @@ fn part2(input: &[Vec<char>]) -> usize {
     let max_x = input[0].len() as u8;
     for x in 0..max_x {
         wq.push((Pos { y: 0, x }, Dir::Down));
-        wq.push((Pos { y: max_y - 1 as u8, x }, Dir::Up));
+        wq.push((
+            Pos {
+                y: max_y - 1 as u8,
+                x,
+            },
+            Dir::Up,
+        ));
     }
     for y in 0..max_y {
         wq.push((Pos { y, x: 0 }, Dir::Right));
-        wq.push((Pos { y, x: max_x - 1 as u8 }, Dir::Left));
+        wq.push((
+            Pos {
+                y,
+                x: max_x - 1 as u8,
+            },
+            Dir::Left,
+        ));
     }
-    wq.par_iter().map(|(p, d)| beam_energy(input, *p, *d)).max().unwrap()
+    wq.par_iter()
+        .map(|(p, d)| beam_energy(input, *p, *d))
+        .max()
+        .unwrap()
 }
 
 #[cfg(test)]

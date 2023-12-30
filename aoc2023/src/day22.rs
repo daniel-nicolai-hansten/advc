@@ -13,8 +13,16 @@ fn parse(input: &str) -> Vec<Brick> {
         let (sx, sy, sz) = start.split(",").collect_tuple().unwrap();
         let (ex, ey, ez) = end.split(",").collect_tuple().unwrap();
         ret.push((
-            (sx.parse().unwrap(), sy.parse().unwrap(), sz.parse().unwrap()),
-            (ex.parse().unwrap(), ey.parse().unwrap(), ez.parse().unwrap()),
+            (
+                sx.parse().unwrap(),
+                sy.parse().unwrap(),
+                sz.parse().unwrap(),
+            ),
+            (
+                ex.parse().unwrap(),
+                ey.parse().unwrap(),
+                ez.parse().unwrap(),
+            ),
         ));
     }
     let mut brick_positions = vec![];
@@ -157,7 +165,10 @@ fn part2(brick_positions: &[Brick]) -> usize {
             for (b_idx, brick) in brick_tree.iter().enumerate() {
                 match (
                     brick.len(),
-                    brick.iter().filter(|brk| !bricks_falling.contains(brk)).count(),
+                    brick
+                        .iter()
+                        .filter(|brk| !bricks_falling.contains(brk))
+                        .count(),
                 ) {
                     (0, _) => (),
                     (_, 0) if !bricks_falling.contains(&b_idx) => {

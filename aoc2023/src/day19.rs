@@ -81,7 +81,12 @@ fn part2(input: &(HashMap<String, Vec<Action>>, Vec<Part>)) -> u64 {
 fn part(input: &str) -> IResult<&str, Part> {
     let (_, nom) = delimited(char('{'), is_not("}"), char('}'))(input)?;
     let (nom, partraw) = separated_list1(tag(","), part_val)(nom)?;
-    let mut part = Part { x: 0, m: 0, a: 0, s: 0 };
+    let mut part = Part {
+        x: 0,
+        m: 0,
+        a: 0,
+        s: 0,
+    };
     for (c, val) in partraw {
         match c {
             'x' => part.x = val,
@@ -101,7 +106,8 @@ fn part_val(input: &str) -> IResult<&str, (char, u32)> {
 fn workflow(input: &str) -> IResult<&str, (&str, Vec<Action>)> {
     let (nom, name) = take_till1(|c| c == '{')(input)?;
     let (_, nom) = delimited(char('{'), is_not("}"), char('}'))(nom)?;
-    let (nom, action) = separated_list1(tag(","), alt((workflow_action_ml, workflow_action_sar)))(nom)?;
+    let (nom, action) =
+        separated_list1(tag(","), alt((workflow_action_ml, workflow_action_sar)))(nom)?;
     // println!("{action:?}");
     Ok((nom, (name, action)))
 }
