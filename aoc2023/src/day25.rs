@@ -10,7 +10,6 @@ fn parse(input: &str) -> (Graph<String, u32, Undirected>, usize) {
     let mut ret_connections = vec![];
     for line in input.lines() {
         let (name, rest) = line.trim().split_once(':').unwrap();
-
         let connections: Vec<_> = rest.split_ascii_whitespace().collect();
         if !nodemap.contains_key(name) {
             let idx = graph.add_node(name.to_string());
@@ -25,7 +24,6 @@ fn parse(input: &str) -> (Graph<String, u32, Undirected>, usize) {
         }
     }
     for (conn, name) in ret_connections {
-        println!("{name:?}");
         let from_idx = nodemap.get(name).unwrap();
         let to_idx = nodemap.get(conn).unwrap();
         graph.add_edge(*from_idx, *to_idx, 1);
@@ -37,10 +35,9 @@ fn parse(input: &str) -> (Graph<String, u32, Undirected>, usize) {
 fn part1(input: &(Graph<String, u32, Undirected>, usize)) -> usize {
     let (graph, totalnodes) = input;
     let min = stoer_wagner_min_cut(graph, |_| Ok::<i32, Box<dyn Error>>(1));
-    let (cut_size, part_nodes) = min.unwrap().unwrap();
+    let (_cut_size, part_nodes) = min.unwrap().unwrap();
     let part1 = part_nodes.len();
     let part2 = totalnodes - part1;
-    println!("{cut_size}  {part1}  {part2}");
     part1 * part2
 }
 
