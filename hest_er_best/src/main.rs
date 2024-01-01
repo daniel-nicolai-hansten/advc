@@ -4,7 +4,9 @@ fn main() {
         moves[i - 1] = Some(Hest::tp(name));
     }   
     let result = solve(moves);
-    println!("{result:?}");
+    for mov in result.unwrap() {
+        println!("{}", mov.unwrap().lp());
+    }
 }
 use itertools::Itertools;
 fn solve(brett: Vec<Option<Hest>>) -> Option<Vec<Option<Hest>>> {
