@@ -9,7 +9,7 @@ fn main() {
 use itertools::Itertools;
 fn solve(brett: Vec<Option<Hest>>) -> Option<Vec<Option<Hest>>> {
     // println!("{:?}", brett.iter().filter( |x| x.is_some()).count());
-          for ((i1, m1), (i2, m2), (i3, m3)) in brett.iter().enumerate().tuple_windows() {
+          for ((_i1, m1), (i2, m2), (_i3, m3)) in brett.iter().enumerate().tuple_windows() {
         match (m1, m2, m3) {
             (Some(_), Some(_), Some(_)) => (),
             (Some(move1), None, Some(move3)) => {
@@ -77,15 +77,15 @@ impl Hest {
                     rad: self.rad - 2,
                     col: self.col - 1,
                 }),
-                (2..=7, 0..=7, 1) => ret.push(Hest {
+                (2..=7, 0..=6, 1) => ret.push(Hest {
                     rad: self.rad - 2,
                     col: self.col + 1,
                 }),
-                (0..=7, 1..=7, 2) => ret.push(Hest {
+                (0..=5, 1..=7, 2) => ret.push(Hest {
                     rad: self.rad + 2,
                     col: self.col - 1,
                 }),
-                (0..=7, 0..=7, 3) => ret.push(Hest {
+                (0..=5, 0..=6, 3) => ret.push(Hest {
                     rad: self.rad + 2,
                     col: self.col + 1,
                 }),
@@ -93,15 +93,15 @@ impl Hest {
                     rad: self.rad - 1,
                     col: self.col - 2,
                 }),
-                (1..=7, 0..=7, 5) => ret.push(Hest {
+                (1..=7, 0..=5, 5) => ret.push(Hest {
                     rad: self.rad - 1,
                     col: self.col + 2,
                 }),
-                (0..=7, 2..=7, 6) => ret.push(Hest {
+                (0..=6, 2..=7, 6) => ret.push(Hest {
                     rad: self.rad + 1,
                     col: self.col - 2,
                 }),
-                (0..=7, 0..=7, 7) => ret.push(Hest {
+                (0..=6, 0..=5, 7) => ret.push(Hest {
                     rad: self.rad + 1,
                     col: self.col + 2,
                 }),
