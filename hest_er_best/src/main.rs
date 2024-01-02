@@ -13,18 +13,19 @@ fn main() {
 use itertools::Itertools;
 fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>> {
 //    print_moves(&brett);
+
     // if startpos > 6 {
     //     return None;
     // }
-    for ((i1, m1), (i2, m2), (_i3, m3)) in brett.iter().enumerate().tuple_windows() {
+    for ((_, m1), (i2, m2), (_i3, m3)) in brett[startpos..].iter().enumerate().tuple_windows() {
         match (m1, m2, m3) {
             (Some(_), Some(_), Some(_)) => (),
             (Some(move1), None, Some(move3)) => {
                 for nxtmove in move1.flytts() {
                     if nxtmove.flytts().contains(move3) && !brett.contains(&Some(nxtmove)) {
                         let mut brett_cpy = brett.clone();
-                        brett_cpy[i2] = Some(nxtmove);
-                        let ret = solve(brett_cpy, i1 + startpos);
+                        brett_cpy[i2 + startpos] = Some(nxtmove);
+                        let ret = solve(brett_cpy, i2 + startpos);
                         if ret.is_some() {
                             return ret;
                         }
@@ -36,8 +37,8 @@ fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>>
                 for nxtmove in move1.flytts() {
                     if !brett.contains(&Some(nxtmove)) {
                         let mut brett_cpy = brett.clone();
-                        brett_cpy[i2] = Some(nxtmove);
-                        let ret = solve(brett_cpy, i1 + startpos);
+                        brett_cpy[i2 + startpos] = Some(nxtmove);
+                        let ret = solve(brett_cpy, i2 + startpos);
                         if ret.is_some() {
                             return ret;
                         } 
@@ -55,12 +56,16 @@ fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>>
     }
 }
 fn print_moves(brett: &[Option<Hest>]) {
-    for m in brett {
+    for (i, m) in brett.iter().enumerate() {
         if let Some(mv) = m {
-            print!("{},", mv.lp());
+            print!("{}", mv.lp());
         } else {
-            print!("  ,");
+            print!("  ");
         }
+        if i +1 < brett.len() {
+            print!(",")
+        }
+
     }
     println!();
 }
