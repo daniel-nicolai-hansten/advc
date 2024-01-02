@@ -7,12 +7,10 @@ fn main() {
         print!("løsning funnet: ");
         print_moves(&brett);
     }
-    
-   
 }
 use itertools::Itertools;
 fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>> {
-//    print_moves(&brett);
+    print_moves(&brett);
 
     // if startpos > 6 {
     //     return None;
@@ -41,7 +39,7 @@ fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>>
                         let ret = solve(brett_cpy, i2 + startpos);
                         if ret.is_some() {
                             return ret;
-                        } 
+                        }
                     }
                 }
                 return None;
@@ -62,10 +60,9 @@ fn print_moves(brett: &[Option<Hest>]) {
         } else {
             print!("  ");
         }
-        if i +1 < brett.len() {
+        if i + 1 < brett.len() {
             print!(",")
         }
-
     }
     println!();
 }
