@@ -2,16 +2,21 @@ fn main() {
     let mut moves = vec![None; 64];
     for (i, name) in HINT {
         moves[i - 1] = Some(Hest::tp(name));
-    }   
-    let result = solve(moves);
-    for mov in result.unwrap() {
-        println!("{}", mov.unwrap().lp());
     }
+    if let Some(brett) = solve(moves, 0) {
+        print!("løsning funnet: ");
+        print_moves(&brett);
+    }
+    
+   
 }
 use itertools::Itertools;
-fn solve(brett: Vec<Option<Hest>>) -> Option<Vec<Option<Hest>>> {
-    // println!("{:?}", brett.iter().filter( |x| x.is_some()).count());
-          for ((_i1, m1), (i2, m2), (_i3, m3)) in brett.iter().enumerate().tuple_windows() {
+fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>> {
+//    print_moves(&brett);
+    // if startpos > 6 {
+    //     return None;
+    // }
+    for ((i1, m1), (i2, m2), (_i3, m3)) in brett.iter().enumerate().tuple_windows() {
         match (m1, m2, m3) {
             (Some(_), Some(_), Some(_)) => (),
             (Some(move1), None, Some(move3)) => {
@@ -19,32 +24,29 @@ fn solve(brett: Vec<Option<Hest>>) -> Option<Vec<Option<Hest>>> {
                     if nxtmove.flytts().contains(move3) && !brett.contains(&Some(nxtmove)) {
                         let mut brett_cpy = brett.clone();
                         brett_cpy[i2] = Some(nxtmove);
-                        let ret = solve(brett_cpy);
+                        let ret = solve(brett_cpy, i1 + startpos);
                         if ret.is_some() {
                             return ret;
-                        } else {
-                            continue;
                         }
                     }
                 }
+                return None;
             }
             (Some(move1), None, None) => {
                 for nxtmove in move1.flytts() {
                     if !brett.contains(&Some(nxtmove)) {
                         let mut brett_cpy = brett.clone();
                         brett_cpy[i2] = Some(nxtmove);
-                        let ret = solve(brett_cpy);
+                        let ret = solve(brett_cpy, i1 + startpos);
                         if ret.is_some() {
                             return ret;
-                        } else {
-                            continue;
-                        }
+                        } 
                     }
                 }
+                return None;
             }
             _ => (),
         }
-
     }
     if brett.iter().all(|x| x.is_some()) {
         return Some(brett);
@@ -52,7 +54,16 @@ fn solve(brett: Vec<Option<Hest>>) -> Option<Vec<Option<Hest>>> {
         return None;
     }
 }
-
+fn print_moves(brett: &[Option<Hest>]) {
+    for m in brett {
+        if let Some(mv) = m {
+            print!("{},", mv.lp());
+        } else {
+            print!("  ,");
+        }
+    }
+    println!();
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Hest {
     rad: u8,
