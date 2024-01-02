@@ -10,7 +10,7 @@ fn main() {
 }
 use itertools::Itertools;
 fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>> {
-    print_moves(&brett);
+    // print_moves(&brett);
 
     // if startpos > 6 {
     //     return None;
