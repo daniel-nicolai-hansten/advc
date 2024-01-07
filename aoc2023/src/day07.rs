@@ -9,12 +9,13 @@ fn parse(input: &str) -> Vec<CardHand> {
         let bid = splits[1].parse().unwrap();
         card_hands.push(CardHand { cards, bid });
     }
-    card_hands.sort_unstable();
+
     card_hands
 }
 
 #[aoc(day7, part1)]
-fn part1(card_hands: &[CardHand]) -> usize {
+fn part1(input: &[CardHand]) -> usize {
+    let card_hands = input.iter().sorted_unstable().collect_vec();
     let mut tot_points = 0;
     for (i, hand) in card_hands.iter().enumerate() {
         let points = (i + 1) * hand.bid;
@@ -113,10 +114,7 @@ impl CardHand {
         }
     }
     fn jokers(&self) -> usize {
-        self.cards
-            .iter()
-            .filter(|c| **c == CardTypes::Joker)
-            .count()
+        self.cards.iter().filter(|c| **c == CardTypes::Joker).count()
     }
     fn cards_counted(&self) -> Vec<usize> {
         self.cards

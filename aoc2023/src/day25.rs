@@ -1,12 +1,13 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use petgraph::prelude::*;
+use rustc_hash::FxHashMap as HashMap;
 use rustworkx_core::connectivity::stoer_wagner_min_cut;
-use std::{collections::HashMap, error::Error};
+use std::error::Error;
 
 #[aoc_generator(day25)]
 fn parse(input: &str) -> (Graph<String, u32, Undirected>, usize) {
     let mut graph = UnGraph::default();
-    let mut nodemap = HashMap::new();
+    let mut nodemap = HashMap::default();
     let mut ret_connections = vec![];
     for line in input.lines() {
         let (name, rest) = line.trim().split_once(':').unwrap();

@@ -1,7 +1,8 @@
-use std::collections::HashMap;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
+use rayon::iter::IntoParallelIterator;
+use rayon::prelude::*;
+use rustc_hash::FxHashMap as HashMap;
 
 #[aoc_generator(day22)]
 fn parse(input: &str) -> Vec<Brick> {
@@ -13,16 +14,8 @@ fn parse(input: &str) -> Vec<Brick> {
         let (sx, sy, sz) = start.split(",").collect_tuple().unwrap();
         let (ex, ey, ez) = end.split(",").collect_tuple().unwrap();
         ret.push((
-            (
-                sx.parse().unwrap(),
-                sy.parse().unwrap(),
-                sz.parse().unwrap(),
-            ),
-            (
-                ex.parse().unwrap(),
-                ey.parse().unwrap(),
-                ez.parse().unwrap(),
-            ),
+            (sx.parse().unwrap(), sy.parse().unwrap(), sz.parse().unwrap()),
+            (ex.parse().unwrap(), ey.parse().unwrap(), ez.parse().unwrap()),
         ));
     }
     let mut brick_positions = vec![];
@@ -87,7 +80,7 @@ fn parse(input: &str) -> Vec<Brick> {
 type Brick = ((usize, usize, usize), (usize, usize, usize));
 #[aoc(day22, part1)]
 fn part1(brick_positions: &[Brick]) -> usize {
-    let mut brickindex = HashMap::new();
+    let mut brickindex = HashMap::default();
 
     for (idx, ((sx, sy, sz), (ex, ey, ez))) in brick_positions.iter().enumerate() {
         for x in *sx..=*ex {
@@ -128,7 +121,7 @@ fn part1(brick_positions: &[Brick]) -> usize {
 
 #[aoc(day22, part2)]
 fn part2(brick_positions: &[Brick]) -> usize {
-    let mut brickindex = HashMap::new();
+    let mut brickindex = HashMap::default();
     for (idx, ((sx, sy, sz), (ex, ey, ez))) in brick_positions.iter().enumerate() {
         for x in *sx..=*ex {
             for y in *sy..=*ey {
@@ -158,33 +151,28 @@ fn part2(brick_positions: &[Brick]) -> usize {
         brick_tree.push(bricks_under);
     }
 
-    let mut totalbricks_falling = 0;
-    for idx in 0..brick_tree.len() {
-        let mut bricks_falling = vec![idx];
-        loop {
-            for (b_idx, brick) in brick_tree.iter().enumerate() {
-                match (
-                    brick.len(),
-                    brick
-                        .iter()
-                        .filter(|brk| !bricks_falling.contains(brk))
-                        .count(),
-                ) {
-                    (0, _) => (),
-                    (_, 0) if !bricks_falling.contains(&b_idx) => {
-                        bricks_falling.push(b_idx);
+    (0..brick_tree.len())
+        .into_par_iter()
+        .map(|idx| {
+            let mut bricks_falling: Vec<usize> = vec![idx];
+            loop {
+                for (b_idx, brick) in brick_tree.iter().enumerate() {
+                    match (
+                        brick.len(),
+                        brick.iter().filter(|brk| !bricks_falling.contains(brk)).count(),
+                    ) {
+                        (0, _) => (),
+                        (_, 0) if !bricks_falling.contains(&b_idx) => {
+                            bricks_falling.push(b_idx);
+                        }
+                        (_, _) => (),
                     }
-                    (_, _) => (),
                 }
+                break;
             }
-            break;
-        }
-
-        // println!("{}", bricks_falling.len() -1);
-        totalbricks_falling += bricks_falling.len() - 1;
-    }
-    // println!("{not_supporting_any}");
-    totalbricks_falling
+            bricks_falling.len() - 1
+        })
+        .sum()
 }
 
 #[cfg(test)]

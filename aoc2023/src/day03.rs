@@ -1,6 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use rand::Rng;
-use std::{collections::HashMap, vec};
+use rustc_hash::FxHashMap as HashMap;
+use std::vec;
 
 #[aoc_generator(day3)]
 fn parse(input: &str) -> String {
@@ -10,7 +11,7 @@ fn parse(input: &str) -> String {
 #[aoc(day3, part1)]
 fn part1(input: &str) -> i32 {
     let mut symbols = Vec::new();
-    let mut numbers = HashMap::new();
+    let mut numbers = HashMap::default();
     for (y, line) in input.lines().enumerate() {
         let mut num = PartNum::new();
         for (x, c) in line.chars().enumerate() {
@@ -65,7 +66,7 @@ fn part1(input: &str) -> i32 {
 #[aoc(day3, part2)]
 fn part2(input: &str) -> i32 {
     let mut gears = Vec::new();
-    let mut numbers = HashMap::new();
+    let mut numbers = HashMap::default();
     for (y, line) in input.lines().enumerate() {
         let mut num = PartNum::new();
         for (x, c) in line.chars().enumerate() {

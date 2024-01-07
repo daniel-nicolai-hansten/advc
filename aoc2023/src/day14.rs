@@ -1,4 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
 #[aoc_generator(day14)]
 fn parse(input: &str) -> Vec<Vec<Rock>> {
     let mut ret = vec![];
@@ -153,7 +155,7 @@ fn move_rocks(rockmap: &mut [Vec<Rock>], dir: Dir, rocklist: &mut [(usize, usize
 }
 
 fn calculate_load(rocks: &[(usize, usize)], south: usize) -> usize {
-    rocks.iter().fold(0, |acc, (y, _x)| acc + south - y)
+    rocks.par_iter().map(|(y, _x)| south - y).sum()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

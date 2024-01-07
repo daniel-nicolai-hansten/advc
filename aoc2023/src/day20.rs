@@ -1,9 +1,10 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use num::integer::lcm;
-use std::collections::{HashMap, VecDeque};
+use rustc_hash::FxHashMap as HashMap;
+use std::collections::VecDeque;
 #[aoc_generator(day20)]
 fn parse<'a>(input: &str) -> HashMap<String, PulseModule> {
-    let mut ret = HashMap::new();
+    let mut ret = HashMap::default();
     for line in input.lines() {
         let line = line.trim_start();
         let (prefx, splits) = line.split_once(" -> ").unwrap();
@@ -16,7 +17,7 @@ fn parse<'a>(input: &str) -> HashMap<String, PulseModule> {
             ),
             "&" => ret.insert(
                 prefx.trim_start_matches('&').to_string(),
-                PulseModule::Conjunction((Signal::None, HashMap::new(), targets)),
+                PulseModule::Conjunction((Signal::None, HashMap::default(), targets)),
             ),
             _ => None,
         };

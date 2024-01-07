@@ -1,6 +1,6 @@
 use itertools::Itertools;
 fn main() {
-    let mut moves = vec![None; 64];
+    let mut moves = [None; 64];
     for (i, name) in HINT {
         moves[i - 1] = Some(Hest::tp(name));
     }
@@ -12,8 +12,8 @@ fn main() {
 
 
 
-fn solve(brett: Vec<Option<Hest>>, startpos: usize) -> Option<Vec<Option<Hest>>> {
-    print_moves(&brett);
+fn solve(brett: [Option<Hest>;64], startpos: usize) -> Option<[Option<Hest>;64]> {
+    // print_moves(&brett);
     for ((_, m1), (i2, m2), (_i3, m3)) in brett[startpos..].iter().enumerate().tuple_windows() {
         match (m1, m2, m3) {
             (Some(_), Some(_), Some(_)) => (),

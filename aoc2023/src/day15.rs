@@ -25,11 +25,7 @@ fn part2(input: &[String]) -> u32 {
                 boxes[boxnum].push((label[0], num));
             }
         } else {
-            if let Some((n, _)) = boxes[boxnum]
-                .iter()
-                .enumerate()
-                .find(|(_n, (s, _))| *s == label[0])
-            {
+            if let Some((n, _)) = boxes[boxnum].iter().enumerate().find(|(_n, (s, _))| *s == label[0]) {
                 boxes[boxnum].remove(n);
             }
         }

@@ -2,6 +2,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 use nalgebra::{Matrix6, Matrix6x1, RowVector6};
 use num::{Num, NumCast};
+use rayon::prelude::*;
 #[cfg(test)]
 const MIN: usize = 7;
 #[cfg(test)]
@@ -11,7 +12,7 @@ const MIN: usize = 200000000000000;
 #[cfg(not(test))]
 const MAX: usize = 400000000000000;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 struct Hail<N> {
     pos: Point<N>,
     velvec: Point<N>,
@@ -53,10 +54,8 @@ where
     fn find_crossing(&self, other: &Hail<N>) -> Intersection<f64> {
         let slope_self = self.velvec.y.to_f64().unwrap() / self.velvec.x.to_f64().unwrap();
         let slope_other = other.velvec.y.to_f64().unwrap() / other.velvec.x.to_f64().unwrap();
-        let intercept_self =
-            self.pos.y.to_f64().unwrap() - slope_self * self.pos.x.to_f64().unwrap();
-        let intercept_other =
-            other.pos.y.to_f64().unwrap() - slope_other * other.pos.x.to_f64().unwrap();
+        let intercept_self = self.pos.y.to_f64().unwrap() - slope_self * self.pos.x.to_f64().unwrap();
+        let intercept_other = other.pos.y.to_f64().unwrap() - slope_other * other.pos.x.to_f64().unwrap();
 
         match (slope_self == slope_other, intercept_self == intercept_other) {
             (true, true) => Intersection::All,
@@ -105,16 +104,8 @@ fn parse(input: &str) -> Vec<Hail<i128>> {
 
 #[aoc(day24, part1)]
 fn part1(input: &[Hail<i128>]) -> usize {
-    let mut tot_crossings = 0;
-    for (hail1, hail2) in input.iter().tuple_combinations() {
-        match hail1.find_crossing(hail2) {
-            Intersection::Point(pos) if pos.in_area(MIN as f64, MAX as f64) => {
-                tot_crossings += 1;
-            }
-            _ => (),
-        }
-    }
-    tot_crossings
+    let pairs: Vec<(_, _)> = input.into_iter().tuple_combinations().collect();
+    pairs.par_iter().filter(|(hail1, hail2)|matches!(hail1.find_crossing(hail2), Intersection::Point(pos)  if pos.in_area(MIN as f64, MAX as f64))).count()
 }
 
 #[aoc(day24, part2)]
