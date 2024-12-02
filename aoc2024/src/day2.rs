@@ -10,11 +10,20 @@ fn parse<'a>(input: &str) -> Vec<Vec<i32>> {
         })
         .collect()
 }
-enum state
+enum State {
+    None,
+    Asc,
+    Dsc,
+}
 #[aoc(day2, part1)]
 fn part1(input: &[Vec<i32>]) -> i32 {
     for ln in input {
+    let mut state = State::None;
         for (n1, n2) in ln.iter().windows(2) {
+        let diff = n1.abs_diff(n2);
+        match (diff, state){
+            (1..=3, State::None) =
+        }
            if n1 >= n2 {
                return n1 - n2;
            }
