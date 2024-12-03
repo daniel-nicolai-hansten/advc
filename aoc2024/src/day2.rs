@@ -36,7 +36,11 @@ fn part2(input: &[Vec<i32>]) -> i32 {
             cnt += 1;
         } else {
             'inner: for n in 0..ln.len() {
-                let damp_list: Vec<i32> = ln.iter().enumerate().filter_map(|(i, e)| (i != n).then(|| *e)).collect();
+                let damp_list: Vec<i32> = ln
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, e)| (i != n).then(|| *e))
+                    .collect();
                 if safethy(&damp_list) {
                     cnt += 1;
                     break 'inner;
@@ -46,15 +50,16 @@ fn part2(input: &[Vec<i32>]) -> i32 {
     }
     cnt
 }
+
 fn safethy(input: &[i32]) -> bool {
     let mut state = State::None;
     for (n1, n2) in input.iter().tuple_windows() {
         let diff = n1.abs_diff(*n2);
-        match (diff, state) {
-            (1..=3, State::None) if n1 > n2 => state = State::Dsc,
-            (1..=3, State::None) if n1 < n2 => state = State::Asc,
-            (1..=3, State::Dsc) if n1 > n2 => (),
-            (1..=3, State::Asc) if n1 < n2 => (),
+        match (diff, state, n1 < n2) {
+            (1..=3, State::None, false) => state = State::Dsc,
+            (1..=3, State::None, true) => state = State::Asc,
+            (1..=3, State::Dsc, false) => (),
+            (1..=3, State::Asc, true) => (),
             _ => return false,
         };
     }
