@@ -1,5 +1,5 @@
 [package]
-name = "aoc2024"
+name = "aoc2022"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,6 +11,3 @@ panic = "abort"
 [dependencies]
 aoc-runner = "0.3.0"
 aoc-runner-derive = "0.3.0"
-itertools = "0.12.0"
-nom = "7.1.3"
-num = "0.4.1"

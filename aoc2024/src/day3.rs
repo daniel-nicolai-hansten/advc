@@ -1,12 +1,8 @@
-use core::prelude;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::branch::alt;
 
 use nom::bytes::complete::tag;
 
-use nom::combinator::not;
-use nom::sequence::preceded;
 use nom::{self, IResult};
 use nom::{
     character::complete::{anychar, char, digit1},
@@ -41,13 +37,10 @@ fn parser2(i: &str) -> IResult<&str, (String, &str, &str)> {
 fn last_do(input: &str) -> IResult<&str, State> {
     let mut state = State::None;
     let dos = |inp| {
-        let (ret, (_, d)) = many_till(
-            anychar,
-            alt((tag("do()"), tag("don't()"))),
-        )(inp)?;
+        let (ret, (_, d)) = many_till(anychar, alt((tag("do()"), tag("don't()"))))(inp)?;
         Ok((ret, d))
     };
-    
+
     let (ret, s) = many0(dos)(input)?;
     if let Some(last) = s.last() {
         state = match *last {
