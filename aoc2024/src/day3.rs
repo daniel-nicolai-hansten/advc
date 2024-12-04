@@ -1,23 +1,35 @@
+
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::branch::alt;
 
 use nom::bytes::complete::tag;
 
-use nom::{self, IResult};
+use nom::{self, IResult, Parser};
 use nom::{
     character::complete::{anychar, char, digit1},
     multi::{many0, many1, many_till},
     sequence::{delimited, separated_pair},
 };
+enum Instruction {
+    Mul(u32,u32),
+    Do,
+    Dont,
 
+}
+impl<I, O, E> Parser<I, O, E> for Instruction {
+    fn parse(&mut self, input: I) -> IResult<I, O, E> {
+        let mul = |i| delimited(tag("mul("), separated_pair(digit1, char(','), digit1), char(')')  )(i);
+        let (input,out) = alt((mul, tag("do()"), tag("don't()")))(input);
+
+        Ok((input,out))
+    }
+}
 fn parser1(i: &str) -> IResult<&str, (&str, &str)> {
+    let mul = |i| delimited(tag("mul("), separated_pair(digit1, char(','), digit1), char(')')  )(i);
+
     let (a, (_b, c)) = many_till(
         anychar,
-        delimited(
-            tag("mul("),
-            separated_pair(digit1::<&str, nom::error::Error<&str>>, char(','), digit1),
-            char(')'),
-        ),
+        mul,
     )(i)?;
     Ok((a, c))
 }
@@ -73,10 +85,7 @@ fn parse2(input: &str) -> Vec<(u32, u32)> {
     for (prev, s1, s2) in b {
         let (_, lstdo) = last_do(&prev).unwrap();
         match (&state, &lstdo) {
-            (State::None | State::Do, State::None) => {
-                ret.push((s1.parse().unwrap(), s2.parse().unwrap()))
-            }
-            (_, State::Do) => {
+            (State::None | State::Do, State::None) | (_, State::Do) => {
                 ret.push((s1.parse().unwrap(), s2.parse().unwrap()));
                 state = State::Do;
             }
