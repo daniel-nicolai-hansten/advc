@@ -4,11 +4,7 @@ use itertools::Itertools;
 fn parse<'a>(input: &str) -> Vec<Vec<i32>> {
     input
         .lines()
-        .map(|s| {
-            s.split_whitespace()
-                .map(|n| n.parse::<i32>().unwrap())
-                .collect::<Vec<i32>>()
-        })
+        .map(|s| s.split_whitespace().map(|n| n.parse::<i32>().unwrap()).collect::<Vec<i32>>())
         .collect()
 }
 #[derive(Clone, Copy, Debug)]
@@ -36,11 +32,7 @@ fn part2(input: &[Vec<i32>]) -> i32 {
             cnt += 1;
         } else {
             'inner: for n in 0..ln.len() {
-                let damp_list: Vec<i32> = ln
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(i, e)| (i != n).then(|| *e))
-                    .collect();
+                let damp_list: Vec<i32> = ln.iter().enumerate().filter_map(|(i, e)| (i != n).then(|| *e)).collect();
                 if safethy(&damp_list) {
                     cnt += 1;
                     break 'inner;

@@ -1,10 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 #[aoc_generator(day4)]
 fn parse(input: &str) -> Vec<Vec<char>> {
-    input
-        .lines()
-        .map(|s| s.chars().collect::<Vec<char>>())
-        .collect()
+    input.lines().map(|s| s.chars().collect::<Vec<char>>()).collect()
 }
 
 #[aoc(day4, part1)]
@@ -120,21 +117,14 @@ fn find_xmas(map: &[Vec<char>], startpos: Pos) -> bool {
         let y1 = startpos.y + i;
         let x2 = (startpos.x + 2).wrapping_sub(i);
         let y2 = startpos.y + i;
-        if x1 >= map[startpos.y].len()
-            || y1 >= map.len()
-            || x2 >= map[startpos.y].len()
-            || y2 >= map.len()
-        {
+        if x1 >= map[startpos.y].len() || y1 >= map.len() || x2 >= map[startpos.y].len() || y2 >= map.len() {
             return false;
         }
 
         collected1.push(map[y1][x1]);
         collected2.push(map[y2][x2]);
     }
-    match (
-        collected1.iter().collect::<String>().as_str(),
-        collected2.iter().collect::<String>().as_str(),
-    ) {
+    match (collected1.iter().collect::<String>().as_str(), collected2.iter().collect::<String>().as_str()) {
         ("MAS" | "SAM", "MAS" | "SAM") => true,
         _ => false,
     }

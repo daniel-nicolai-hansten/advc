@@ -5,10 +5,7 @@ fn parse<'a>(input: &str) -> (Vec<u32>, Vec<u32>) {
         .lines()
         .map(|s| {
             let splits: Vec<&str> = s.split_whitespace().collect();
-            (
-                splits[0].parse::<u32>().unwrap(),
-                splits[1].parse::<u32>().unwrap(),
-            )
+            (splits[0].parse::<u32>().unwrap(), splits[1].parse::<u32>().unwrap())
         })
         .collect()
 }

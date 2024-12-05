@@ -19,23 +19,12 @@ enum Instr {
 }
 fn mul(input: &str) -> IResult<&str, Instr> {
     let (input, _) = tag("mul")(input)?;
-    let (input, (n1, n2)) = delimited(
-        tag("("),
-        separated_pair(complete::u32, tag(","), complete::u32),
-        tag(")"),
-    )(input)?;
+    let (input, (n1, n2)) = delimited(tag("("), separated_pair(complete::u32, tag(","), complete::u32), tag(")"))(input)?;
     Ok((input, Instr::Mul(n1, n2)))
 }
 
 fn instruction(input: &str) -> IResult<&str, Instr> {
-    let (rest, (_, input)) = many_till(
-        anychar,
-        alt((
-            value(Instr::Dont, tag("don't()")),
-            value(Instr::Do, tag("do()")),
-            mul,
-        )),
-    )(input)?;
+    let (rest, (_, input)) = many_till(anychar, alt((value(Instr::Dont, tag("don't()")), value(Instr::Do, tag("do()")), mul)))(input)?;
     Ok((rest, input))
 }
 
@@ -47,13 +36,9 @@ fn parse(input: &str) -> Vec<Instr> {
 
 #[aoc(day3, part1)]
 fn part1(input: &[Instr]) -> u32 {
-    input.iter().fold(0, |acc, ins| {
-        if let Instr::Mul(n1, n2) = ins {
-            acc + (n1 * n2)
-        } else {
-            acc
-        }
-    })
+    input
+        .iter()
+        .fold(0, |acc, ins| if let Instr::Mul(n1, n2) = ins { acc + (n1 * n2) } else { acc })
 }
 
 #[aoc(day3, part2)]
@@ -79,10 +64,8 @@ fn part2(input: &[Instr]) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const TESTINPUT1: &str =
-        "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-    const TESTINPUT2: &str =
-        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+    const TESTINPUT1: &str = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
+    const TESTINPUT2: &str = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
     #[test]
     fn part1_example() {
         assert_eq!(part1(&parse(TESTINPUT1)), 161);

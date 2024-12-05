@@ -1,8 +1,8 @@
+use std::cmp::Ordering;
+
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::bytes::complete::{tag, take_till};
+use nom::bytes::complete::tag;
 use nom::character::complete::{self, line_ending};
-use nom::character::is_digit;
-use nom::combinator::{opt, value};
 
 use nom::multi::separated_list1;
 use nom::sequence::terminated;
@@ -10,13 +10,13 @@ use nom::{self, IResult};
 use nom::{
     character::complete::anychar,
     multi::{many1, many_till},
-    sequence::{delimited, separated_pair},
+    sequence::separated_pair,
 };
 
 #[aoc_generator(day5)]
 fn parse(input: &str) -> (Vec<Rule>, Vec<Vec<u32>>) {
     let (input, rules) = many1(terminated(parse_rule, line_ending))(input).unwrap();
-    let (_, (_, pagelist)) = many_till(anychar, many1(parse_pglist))(input).unwrap();
+    let (_, (_, pagelist)) = many_till(anychar, parse_pglist)(input).unwrap();
     (rules, pagelist)
 }
 #[derive(Debug)]
@@ -43,8 +43,8 @@ fn parse_rule(input: &str) -> IResult<&str, Rule> {
     let (input, (first, second)) = separated_pair(complete::u32, tag("|"), complete::u32)(input)?;
     Ok((input, Rule::from((first, second))))
 }
-fn parse_pglist(input: &str) -> IResult<&str, Vec<u32>> {
-    let (inp, res) = terminated(separated_list1(tag(","), complete::u32), opt(line_ending))(input)?;
+fn parse_pglist(input: &str) -> IResult<&str, Vec<Vec<u32>>> {
+    let (inp, res) = separated_list1(line_ending, separated_list1(tag(","), complete::u32))(input)?;
     Ok((inp, res))
 }
 #[aoc(day5, part1)]
@@ -77,9 +77,22 @@ fn part2(input: &(Vec<Rule>, Vec<Vec<u32>>)) -> u32 {
             }
         }
     }
-    for pages in sort_pages {
-        sorted.sort_by
-        cnt += sorted[sorted.len() / 2];
+    let sortfunc = |n1: &u32, n2: &u32| {
+        let num = [n1, n2];
+        for rule in rules {
+            let n1idx = num.iter().position(|&x| *x == rule.first);
+            let n2idx = num.iter().position(|&x| *x == rule.second);
+            match (n1idx, n2idx) {
+                (Some(n1), Some(n2)) if n1 > n2 => return Ordering::Less,
+                (Some(n1), Some(n2)) if n1 < n2 => return Ordering::Greater,
+                _ => (),
+            }
+        }
+        Ordering::Equal
+    };
+    for pages in sort_pages.iter_mut() {
+        pages.sort_by(sortfunc);
+        cnt += pages[pages.len() / 2];
     }
     cnt
 }
