@@ -1,114 +1,83 @@
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::branch::alt;
 
 use nom::bytes::complete::tag;
 
-use nom::{self, IResult, Parser};
+use nom::character::complete;
+use nom::combinator::value;
+use nom::{self, IResult};
 use nom::{
-    character::complete::{anychar, char, digit1},
-    multi::{many0, many1, many_till},
+    character::complete::anychar,
+    multi::{many1, many_till},
     sequence::{delimited, separated_pair},
 };
-enum Instruction {
-    Mul(u32,u32),
+#[derive(Debug, Clone, Copy)]
+enum Instr {
+    Mul(u32, u32),
     Do,
     Dont,
-
 }
-impl<I, O, E> Parser<I, O, E> for Instruction {
-    fn parse(&mut self, input: I) -> IResult<I, O, E> {
-        let mul = |i| delimited(tag("mul("), separated_pair(digit1, char(','), digit1), char(')')  )(i);
-        let (input,out) = alt((mul, tag("do()"), tag("don't()")))(input);
-
-        Ok((input,out))
-    }
+fn mul(input: &str) -> IResult<&str, Instr> {
+    let (input, _) = tag("mul")(input)?;
+    let (input, (n1, n2)) = delimited(
+        tag("("),
+        separated_pair(complete::u32, tag(","), complete::u32),
+        tag(")"),
+    )(input)?;
+    Ok((input, Instr::Mul(n1, n2)))
 }
-fn parser1(i: &str) -> IResult<&str, (&str, &str)> {
-    let mul = |i| delimited(tag("mul("), separated_pair(digit1, char(','), digit1), char(')')  )(i);
 
-    let (a, (_b, c)) = many_till(
+fn instruction(input: &str) -> IResult<&str, Instr> {
+    let (rest, (_, input)) = many_till(
         anychar,
-        mul,
-    )(i)?;
-    Ok((a, c))
+        alt((
+            value(Instr::Dont, tag("don't()")),
+            value(Instr::Do, tag("do()")),
+            mul,
+        )),
+    )(input)?;
+    Ok((rest, input))
 }
 
-fn parser2(i: &str) -> IResult<&str, (String, &str, &str)> {
-    let (a, (b, (c, d))) = many_till(
-        anychar,
-        delimited(
-            tag("mul("),
-            separated_pair(digit1::<&str, nom::error::Error<&str>>, char(','), digit1),
-            char(')'),
-        ),
-    )(i)?;
-    let s: String = b.into_iter().collect();
-    Ok((a, (s, c, d)))
-}
-fn last_do(input: &str) -> IResult<&str, State> {
-    let mut state = State::None;
-    let dos = |inp| {
-        let (ret, (_, d)) = many_till(anychar, alt((tag("do()"), tag("don't()"))))(inp)?;
-        Ok((ret, d))
-    };
-
-    let (ret, s) = many0(dos)(input)?;
-    if let Some(last) = s.last() {
-        state = match *last {
-            "do()" => State::Do,
-            "don't()" => State::Dont,
-            _ => State::None,
-        };
-    }
-    Ok((ret, state))
-}
-
-#[aoc_generator(day3, part1)]
-fn parse1(input: &str) -> Vec<(u32, u32)> {
-    let (_a, b) = many1(parser1)(input).unwrap();
-    b.iter()
-        .map(|(n1, n2)| (n1.parse::<u32>().unwrap(), n2.parse::<u32>().unwrap()))
-        .collect()
-}
-#[derive(Debug)]
-enum State {
-    Do,
-    Dont,
-    None,
-}
-#[aoc_generator(day3, part2)]
-fn parse2(input: &str) -> Vec<(u32, u32)> {
-    let (_a, b) = many1(parser2)(input).unwrap();
-    let mut ret = vec![];
-    let mut state = State::None;
-    for (prev, s1, s2) in b {
-        let (_, lstdo) = last_do(&prev).unwrap();
-        match (&state, &lstdo) {
-            (State::None | State::Do, State::None) | (_, State::Do) => {
-                ret.push((s1.parse().unwrap(), s2.parse().unwrap()));
-                state = State::Do;
-            }
-            (_, State::Dont) => state = State::Dont,
-            _ => (),
-        };
-    }
-    ret
+#[aoc_generator(day3)]
+fn parse(input: &str) -> Vec<Instr> {
+    let (_, b) = many1(instruction)(input).unwrap();
+    b
 }
 
 #[aoc(day3, part1)]
-fn part1(input: &[(u32, u32)]) -> u32 {
-    input.iter().fold(0, |acc, (n1, n2)| acc + (n1 * n2))
+fn part1(input: &[Instr]) -> u32 {
+    input.iter().fold(0, |acc, ins| {
+        if let Instr::Mul(n1, n2) = ins {
+            acc + (n1 * n2)
+        } else {
+            acc
+        }
+    })
 }
 
 #[aoc(day3, part2)]
-fn part2(input: &[(u32, u32)]) -> u32 {
-    input.iter().fold(0, |acc, (n1, n2)| acc + (n1 * n2))
+fn part2(input: &[Instr]) -> u32 {
+    let mut state = true;
+    input
+        .iter()
+        .map(|inst| match inst {
+            Instr::Mul(n1, n2) if state => n1 * n2,
+            Instr::Do => {
+                state = true;
+                0
+            }
+            Instr::Dont => {
+                state = false;
+                0
+            }
+            _ => 0,
+        })
+        .sum()
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     const TESTINPUT1: &str =
         "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
@@ -116,11 +85,11 @@ mod tests {
         "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse1(TESTINPUT1)), 161);
+        assert_eq!(part1(&parse(TESTINPUT1)), 161);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse2(TESTINPUT2)), 48);
+        assert_eq!(part2(&parse(TESTINPUT2)), 48);
     }
 }
