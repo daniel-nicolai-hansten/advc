@@ -1,17 +1,13 @@
-use std::cmp::Ordering;
-
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::bytes::complete::tag;
-use nom::character::complete::{self, line_ending};
-
-use nom::multi::separated_list1;
-use nom::sequence::terminated;
-use nom::{self, IResult};
 use nom::{
-    character::complete::anychar,
-    multi::{many1, many_till},
-    sequence::separated_pair,
+    self,
+    bytes::complete::tag,
+    character::complete::{self, anychar, line_ending},
+    multi::{many1, many_till, separated_list1},
+    sequence::{separated_pair, terminated},
+    IResult,
 };
+use std::cmp::Ordering;
 
 #[aoc_generator(day5)]
 fn parse(input: &str) -> (Vec<Rule>, Vec<Vec<u32>>) {
