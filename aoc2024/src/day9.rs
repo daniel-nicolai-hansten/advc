@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-
 use aoc_runner_derive::{aoc, aoc_generator};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Dsk {
@@ -136,7 +135,7 @@ mod tests {
     fn part2_example() {
         let test = parse(TESTINPUT);
         assert_eq!(find_len(&test), 2);
-        assert_eq!(test[find_free_block_of_size(3, &test[3..]) + 3], Dsk::Free);
+        assert_eq!(test[find_free_block_of_size(3, &test[3..]).unwrap() + 3], Dsk::Free);
         assert_eq!(part2(&parse(TESTINPUT)), 2858);
     }
 }

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 #[allow(dead_code)]
 fn substringfinder(s: &str) -> i32 {
     let lst = s.as_bytes();
@@ -22,16 +24,20 @@ fn substringfinder(s: &str) -> i32 {
 fn substringfinder_hashmap(s: &str) -> i32 {
     let lst = s.as_bytes();
     let (mut head, mut tail, mut ans) = (0, 0, 0);
-    let mut map: u128 = 0;
+    let mut map = HashSet::new();
+    let mut last = lst[0];
     while head < lst.len() {
-        match map.count_ones() as usize == (head - tail) {
+        match map.len() == (head - tail) {
             true => {
-                map ^= 1 << (0x7f & lst[head]);
-                ans = std::cmp::max(ans, map.count_ones());
+                map.insert(lst[head]);
+                ans = std::cmp::max(ans, map.len());
+                last = lst[head];
                 head += 1;
             }
             false => {
-                map ^= 1 << (0x7f & lst[tail]);
+                if lst[tail] != last {
+                    map.remove(&lst[tail]);
+                }
                 tail += 1;
             }
         }
@@ -52,6 +58,12 @@ mod tests {
         assert_eq!(substringfinder(""), 0);
         assert_eq!(substringfinder(" "), 1);
         assert_eq!(substringfinder("abc"), 3);
+        assert_eq!(substringfinder_hashmap(TESTINPUT1), 3);
+        assert_eq!(substringfinder_hashmap(TESTINPUT2), 1);
+        assert_eq!(substringfinder_hashmap(TESTINPUT3), 3);
+        //assert_eq!(substringfinder_hashmap(""), 0);
+        assert_eq!(substringfinder_hashmap(" "), 1);
+        assert_eq!(substringfinder_hashmap("abc"), 3);
     }
     #[test]
     fn time_largefile() {
@@ -60,6 +72,10 @@ mod tests {
         let n = substringfinder(&file);
         let elapsed = start.elapsed();
         println!("Time taken to find substring: {:?}, num: {n}", elapsed);
+        let start = std::time::Instant::now();
+        let n = substringfinder_hashmap(&file);
+        let elapsed = start.elapsed();
+        println!("Time taken to find substring hm: {:?}, num: {n}", elapsed);
     }
 }
 
