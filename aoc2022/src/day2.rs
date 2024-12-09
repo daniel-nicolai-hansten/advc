@@ -1,5 +1,3 @@
-use std::ffi::VaList;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::{
     character::complete::{self, alpha1, multispace1, newline, one_of},
@@ -17,12 +15,12 @@ fn parse(input: &str) -> Vec<(char, char)> {
 }
 
 #[aoc(day2, part1)]
-fn part1(input: &str) -> String {
+fn part1(input: &[(char, char)]) -> String {
     todo!()
 }
 
 #[aoc(day2, part2)]
-fn part2(input: &str) -> String {
+fn part2(input: &[(char, char)]) -> String {
     todo!()
 }
 
