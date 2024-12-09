@@ -1,5 +1,7 @@
+use std::collections::HashSet;
+
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::character::complete::tab;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Dsk {
     File(u32),
@@ -23,7 +25,6 @@ fn parse(input: &str) -> Vec<Dsk> {
 
 #[aoc(day9, part1)]
 fn part1(input: &[Dsk]) -> usize {
-    let mut ret = 0;
     let mut dsk = input.to_vec();
     let (mut head, mut tail) = (0, dsk.len() - 1);
     'outer: loop {
@@ -48,8 +49,78 @@ fn part1(input: &[Dsk]) -> usize {
 }
 
 #[aoc(day9, part2)]
-fn part2(input: &[Dsk]) -> String {
-    todo!()
+fn part2(input: &[Dsk]) -> usize {
+    let mut dsk = input.to_vec();
+    let (mut head, mut tail) = (0, dsk.len() - 1);
+    let mut moved = HashSet::new();
+    'outer: loop {
+        while dsk[head] != Dsk::Free {
+            head += 1;
+            if head >= tail {
+                break 'outer;
+            }
+        }
+        while dsk[tail] == Dsk::Free {
+            tail -= 1;
+            if head >= tail {
+                break 'outer;
+            }
+        }
+
+        let size = find_len(&dsk[..=tail]);
+        if let Dsk::File(id) = &dsk[tail] {
+            if !moved.insert(*id) {
+                tail -= size;
+                continue 'outer;
+            }
+        }
+        if let Some(freeblock) = find_free_block_of_size(size, &dsk[head..=tail]) {
+            for i in 0..size {
+                dsk.swap(head + freeblock + i, tail - i);
+            }
+        } else {
+            tail -= size;
+        }
+    }
+    dsk.iter().enumerate().fold(0, |acc, (idx, f)| match f {
+        Dsk::File(n) => (idx * *n as usize) + acc,
+        Dsk::Free => acc,
+    })
+}
+fn find_len(inp: &[Dsk]) -> usize {
+    match inp {
+        [] => 0,
+        [Dsk::File(_)] => 1,
+        [rest @ .., Dsk::File(n)] => {
+            let mut ret = 0;
+            for i in (0..rest.len()).rev() {
+                match rest[i] {
+                    Dsk::File(m) if m == *n => (),
+                    _ => {
+                        ret = rest.len() - i;
+                        break;
+                    }
+                }
+            }
+            ret
+        }
+        _ => 0,
+    }
+}
+fn find_free_block_of_size(size: usize, input: &[Dsk]) -> Option<usize> {
+    let mut freelen = 0;
+    let mut ret = None;
+    for (idx, block) in input.iter().enumerate() {
+        match block {
+            &Dsk::File(_) => freelen = 0,
+            &Dsk::Free => freelen += 1,
+        }
+        if freelen >= size {
+            ret = Some(1 + idx - freelen);
+            break;
+        }
+    }
+    ret
 }
 
 #[cfg(test)]
@@ -63,6 +134,9 @@ mod tests {
 
     #[test]
     fn part2_example() {
-        // assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
+        let test = parse(TESTINPUT);
+        assert_eq!(find_len(&test), 2);
+        assert_eq!(test[find_free_block_of_size(3, &test[3..]) + 3], Dsk::Free);
+        assert_eq!(part2(&parse(TESTINPUT)), 2858);
     }
 }
