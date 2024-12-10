@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use std::collections::HashSet;
+use rustc_hash::FxHashSet as HashSet;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Dsk {
@@ -51,7 +51,7 @@ fn part1(input: &[Dsk]) -> usize {
 fn part2(input: &[Dsk]) -> usize {
     let mut dsk = input.to_vec();
     let (mut head, mut tail) = (0, dsk.len() - 1);
-    let mut moved = HashSet::new();
+    let mut moved = HashSet::default();
     'outer: loop {
         while dsk[head] != Dsk::Free {
             head += 1;
@@ -77,9 +77,8 @@ fn part2(input: &[Dsk]) -> usize {
             for i in 0..size {
                 dsk.swap(head + freeblock + i, tail - i);
             }
-        } else {
-            tail -= size;
         }
+        tail -= size;
     }
     dsk.iter().enumerate().fold(0, |acc, (idx, f)| match f {
         Dsk::File(n) => (idx * *n as usize) + acc,
