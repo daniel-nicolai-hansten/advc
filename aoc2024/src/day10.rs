@@ -1,6 +1,6 @@
-use std::collections::{HashSet, VecDeque};
-use crate::pos::{Pos, Coord};
+use crate::pos::{Coord, Pos};
 use aoc_runner_derive::{aoc, aoc_generator};
+use std::collections::{HashSet, VecDeque};
 
 #[aoc_generator(day10)]
 fn parse(input: &str) -> Vec<Vec<u8>> {
@@ -92,10 +92,7 @@ mod tests {
 32019012
 01329801
 10456732";
-    const TESTINPUT2: &str = "0123
-1234
-8765
-9876";
+
     #[test]
     fn part1_example() {
         //println!("{:?}", parse(TESTINPUT));
