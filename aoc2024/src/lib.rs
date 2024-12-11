@@ -9,6 +9,7 @@ mod day7;
 mod day8;
 mod day9;
 mod substring;
+mod pos;
 
 extern crate aoc_runner;
 

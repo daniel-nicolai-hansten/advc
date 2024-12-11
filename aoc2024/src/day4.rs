@@ -11,19 +11,15 @@ fn part1(input: &[Vec<char>]) -> u32 {
         for x in 0..input[y].len() {
             if vertical(input, Pos { x, y }) {
                 cnt += 1;
-                //println!("Vertical at x: {}, y: {}", x, y);
             }
             if horizontal(input, Pos { x, y }) {
                 cnt += 1;
-                //println!("Horizontal at x: {}, y: {}", x, y);
             }
             if diagonal(input, Pos { x, y }) {
                 cnt += 1;
-                //println!("Diagonal at x: {}, y: {}", x, y);
             }
             if diagonal2(input, Pos { x, y }) {
                 cnt += 1;
-                //println!("Diagonal2 at x: {}, y: {}", x, y);
             }
         }
     }
@@ -103,7 +99,6 @@ fn part2(input: &[Vec<char>]) -> u32 {
         for x in 0..input[y].len() {
             if find_xmas(input, Pos { x, y }) {
                 cnt += 1;
-                //println!("Found XMAS at x: {}, y: {}", x + 1, y + 1);
             }
         }
     }

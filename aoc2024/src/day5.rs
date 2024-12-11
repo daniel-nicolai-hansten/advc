@@ -47,7 +47,6 @@ fn parse_pglist(input: &str) -> IResult<&str, Vec<Vec<u32>>> {
 fn part1(input: &(Vec<Rule>, Vec<Vec<u32>>)) -> u32 {
     let (rules, pagelist) = input;
     let mut cnt = 0;
-    println!("{}  {}", rules.len(), pagelist.len());
     'outer: for pages in pagelist {
         for rule in rules {
             if !rule.validate(pages) {

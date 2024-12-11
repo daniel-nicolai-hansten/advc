@@ -32,9 +32,6 @@ pub trait Coord {
             None
         }
     }
-    fn neighbors(&self, maxy: usize, maxx: usize) -> Vec<Pos> {
-        [self.up(), self.down(maxy), self.left(), self.right(maxx)].iter().filter_map(|x| *x).collect()
-    }
 }
 impl Coord for Pos {
     fn x(&self) -> usize {

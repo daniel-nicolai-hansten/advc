@@ -3,7 +3,7 @@ use rustc_hash::FxHashSet as HashSet;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Dsk {
-    File(u32),
+    File((u32, bool)),
     Free,
 }
 #[aoc_generator(day9)]
@@ -12,7 +12,7 @@ fn parse(input: &str) -> Vec<Dsk> {
     for (n, c) in input.chars().enumerate() {
         for _ in 0..c.to_digit(10).unwrap() {
             let fs = match n % 2 {
-                0 => Dsk::File(n as u32 / 2),
+                0 => Dsk::File((n as u32 / 2, false)),
                 1 => Dsk::Free,
                 _ => panic!("Invalid input"),
             };
@@ -42,7 +42,7 @@ fn part1(input: &[Dsk]) -> usize {
         dsk.swap(head, tail);
     }
     dsk.iter().enumerate().fold(0, |acc, (idx, f)| match f {
-        Dsk::File(n) => (idx * *n as usize) + acc,
+        Dsk::File((n, _)) => (idx * *n as usize) + acc,
         Dsk::Free => acc,
     })
 }
@@ -81,7 +81,7 @@ fn part2(input: &[Dsk]) -> usize {
         tail -= size;
     }
     dsk.iter().enumerate().fold(0, |acc, (idx, f)| match f {
-        Dsk::File(n) => (idx * *n as usize) + acc,
+        Dsk::File((n,_)) => (idx * *n as usize) + acc,
         Dsk::Free => acc,
     })
 }

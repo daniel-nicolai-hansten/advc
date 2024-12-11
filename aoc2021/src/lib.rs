@@ -1,5 +1,5 @@
-mod day9;
 mod day8;
+mod day9;
 mod pos;
 extern crate aoc_runner;
 
