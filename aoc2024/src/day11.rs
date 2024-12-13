@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::character::complete;
@@ -14,74 +15,55 @@ fn parse2(input: &str) -> IResult<&str, Vec<u64>> {
 
 #[aoc(day11, part1)]
 fn part1(input: &[u64]) -> u64 {
-    let mut stones = input.to_vec();
-    for _i in 0..25 {
-        let mut new_stones = Vec::with_capacity(stones.len() * 2);
-        for stone in stones.iter() {
-            match (stone, split(*stone)) {
-                (0, _) => new_stones.push(1),
-
-                (_, Some((n1, n2))) => {
-                    new_stones.push(n1);
-                    new_stones.push(n2);
-                }
-                _ => new_stones.push(*stone * 2024),
-            }
-        }
-        stones = new_stones;
-    }
-    stones.len() as u64
-}
-fn split(a: u64) -> Option<(u64, u64)> {
-    let mut multiplier = 1;
-    let mut bt = a;
-    let mut ln = 0;
-    while bt > 0 {
-        bt /= 10;
-        if ln % 2 == 1 {
-            multiplier *= 10;
-        }
-        ln += 1;
-    }
-    match ln % 2 {
-        1 => None,
-        _ => Some((a / multiplier, a % multiplier)),
-    }
+    stone_simulate(input, 25)
 }
 #[aoc(day11, part2)]
 fn part2(input: &[u64]) -> u64 {
-    let mut stones = HashMap::new();
+    stone_simulate(input, 75)
+}
+fn stone_simulate(input: &[u64], simlen: u32) -> u64 {
+    let mut stones = HashMap::default();
+    let mut loopcnt = 0;
     for stone in input {
         stones.insert(*stone, 1);
     }
-    for _i in 0..75 {
-        let mut new_stones = HashMap::new();
+    for _i in 0..simlen {
+        let mut new_stones = HashMap::default();
         for (stone, cnt) in stones.iter() {
+            loopcnt += 1;
             match (stone, split(*stone)) {
                 (0, _) => {
-                    if let Some(c) = new_stones.insert(1, *cnt) {
-                        new_stones.insert(1, c + cnt);
-                    }
+                    new_stones.entry(1).and_modify(|c| *c += *cnt).or_insert(*cnt);
                 }
-
                 (_, Some((n1, n2))) => {
-                    if let Some(c) = new_stones.insert(n1, *cnt) {
-                        new_stones.insert(n1, c + cnt);
-                    }
-                    if let Some(c) = new_stones.insert(n2, *cnt) {
-                        new_stones.insert(n2, c + cnt);
-                    }
+                    new_stones.entry(n1).and_modify(|c| *c += *cnt).or_insert(*cnt);
+                    new_stones.entry(n2).and_modify(|c| *c += *cnt).or_insert(*cnt);
                 }
                 _ => {
-                    if let Some(c) = new_stones.insert(*stone * 2024, *cnt) {
-                        new_stones.insert(*stone * 2024, c + cnt);
-                    }
+                    new_stones.entry(*stone * 2024).and_modify(|c| *c += *cnt).or_insert(*cnt);
                 }
             }
         }
         stones = new_stones;
     }
+    println!("Total unique numbers after {} blinks: {} fn cnt: {}", simlen, stones.len(), loopcnt);
     stones.iter().map(|(_, v)| v).sum()
+}
+
+fn split(a: u64) -> Option<(u64, u64)> {
+    let (mut multiplier, mut len) = (1, 0);
+    let mut bt = a;
+    while bt > 0 {
+        bt /= 10;
+        if len % 2 == 1 {
+            multiplier *= 10;
+        }
+        len += 1;
+    }
+    match len % 2 {
+        1 => None,
+        _ => Some((a / multiplier, a % multiplier)),
+    }
 }
 
 #[cfg(test)]

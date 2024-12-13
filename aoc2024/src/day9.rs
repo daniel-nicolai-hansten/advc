@@ -81,7 +81,7 @@ fn part2(input: &[Dsk]) -> usize {
         tail -= size;
     }
     dsk.iter().enumerate().fold(0, |acc, (idx, f)| match f {
-        Dsk::File((n,_)) => (idx * *n as usize) + acc,
+        Dsk::File((n, _)) => (idx * *n as usize) + acc,
         Dsk::Free => acc,
     })
 }

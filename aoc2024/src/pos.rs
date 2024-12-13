@@ -32,6 +32,17 @@ pub trait Coord {
             None
         }
     }
+    #[allow(dead_code)]
+    fn neighbors(&self, maxy: usize, maxx: usize) -> Vec<Pos> {
+        [self.up(), self.down(maxy), self.left(), self.right(maxx)].iter().filter_map(|x| *x).collect()
+    }
+    #[allow(dead_code)]
+    fn all_neighbors(&self) -> Vec<Pos> {
+        vec![self.up(), self.down(usize::MAX), self.left(), self.right(usize::MAX)]
+            .iter()
+            .filter_map(|x| *x)
+            .collect()
+    }
 }
 impl Coord for Pos {
     fn x(&self) -> usize {
