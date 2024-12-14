@@ -1,5 +1,3 @@
-use std::cmp::min;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::{
     bytes::complete::tag,
@@ -15,15 +13,15 @@ fn parse(input: &str) -> Vec<ClawMachine> {
 fn parse_ruleset(i: &str) -> IResult<&str, ClawMachine> {
     let (i, a) = preceded(
         tag("Button A: "),
-        separated_pair(preceded(tag("X+"), complete::i128), tag(", "), preceded(tag("Y+"), complete::i128)),
+        separated_pair(preceded(tag("X+"), complete::i64), tag(", "), preceded(tag("Y+"), complete::i64)),
     )(i)?;
     let (i, b) = preceded(
         preceded(newline, tag("Button B: ")),
-        separated_pair(preceded(tag("X+"), complete::i128), tag(", "), preceded(tag("Y+"), complete::i128)),
+        separated_pair(preceded(tag("X+"), complete::i64), tag(", "), preceded(tag("Y+"), complete::i64)),
     )(i)?;
     let (i, p) = preceded(
         preceded(newline, tag("Prize: ")),
-        separated_pair(preceded(tag("X="), complete::i128), tag(", "), preceded(tag("Y="), complete::i128)),
+        separated_pair(preceded(tag("X="), complete::i64), tag(", "), preceded(tag("Y="), complete::i64)),
     )(i)?;
     Ok((
         i,
@@ -36,24 +34,24 @@ fn parse_ruleset(i: &str) -> IResult<&str, ClawMachine> {
 }
 #[derive(Debug, Clone)]
 struct ClawMachine {
-    button_a: (i128, i128),
-    button_b: (i128, i128),
-    prize: (i128, i128),
+    button_a: (i64, i64),
+    button_b: (i64, i64),
+    prize: (i64, i64),
 }
 
 #[aoc(day13, part1)]
-fn part1(input: &[ClawMachine]) -> i128 {
+fn part1(input: &[ClawMachine]) -> i64 {
     let mut res = 0;
     'outer: for claw in input {
         let maxpresses = 100;
         for i in 0..maxpresses {
             let bpresses = maxpresses - i;
-            let rem = claw.prize.0 as i32 - (claw.button_b.0 * bpresses) as i32;
+            let rem = claw.prize.0 - (claw.button_b.0 * bpresses);
             if rem < 0 {
                 continue;
             }
-            if rem % claw.button_a.0 as i32 == 0 {
-                let apresses = rem as i128 / claw.button_a.0;
+            if rem % claw.button_a.0  == 0 {
+                let apresses = rem  / claw.button_a.0;
                 let pos_x = (claw.button_a.0 * apresses) + (claw.button_b.0 * bpresses);
                 let pos_y = (claw.button_a.1 * apresses) + (claw.button_b.1 * bpresses);
                 if (pos_x, pos_y) == claw.prize {
@@ -67,7 +65,7 @@ fn part1(input: &[ClawMachine]) -> i128 {
 }
 
 #[aoc(day13, part2)]
-fn part2(input: &[ClawMachine]) -> i128 {
+fn part2(input: &[ClawMachine]) -> i64 {
     let mut res = 0;
     for ClawMachine { button_a, button_b, prize } in input {
         let mut prize = prize.clone();
@@ -112,6 +110,6 @@ Prize: X=18641, Y=10279";
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse(TESTINPUT)), 480);
+        assert_eq!(part2(&parse(TESTINPUT)), 875318608908);
     }
 }
