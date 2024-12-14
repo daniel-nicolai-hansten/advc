@@ -50,8 +50,8 @@ fn part1(input: &[ClawMachine]) -> i64 {
             if rem < 0 {
                 continue;
             }
-            if rem % claw.button_a.0  == 0 {
-                let apresses = rem  / claw.button_a.0;
+            if rem % claw.button_a.0 == 0 {
+                let apresses = rem / claw.button_a.0;
                 let pos_x = (claw.button_a.0 * apresses) + (claw.button_b.0 * bpresses);
                 let pos_y = (claw.button_a.1 * apresses) + (claw.button_b.1 * bpresses);
                 if (pos_x, pos_y) == claw.prize {
