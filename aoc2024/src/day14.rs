@@ -1,11 +1,16 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::IResult;
+use nom::{bytes::complete::tag, character::complete::{self, space1}, sequence::{preceded, separated_pair}, IResult};
+
+struct Robot {
+    position: (i32, i32),
+    velocity: (i32, i32),
+}
 #[aoc_generator(day14)]
 fn parse(input: &str) -> String {
     todo!()
 }
-fn parse_line(line: &str) -> IResult<&str, (i32, i32)> {
-    todo!()
+fn parse_line(line: &str) -> IResult<&str, Robot> {
+    let (i,o ) = separated_pair(preceded(tag("p="), separated_pair(complete::i32, tag(","), complete::i32)), space1, preceded(tag("v="), separated_pair(complete::i32, tag(","), complete::i32)))(line)?;
 }
 
 #[aoc(day14, part1)]
