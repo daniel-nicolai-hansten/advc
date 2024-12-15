@@ -8,7 +8,7 @@ use nom::{
 
 use std::io::BufWriter;
 use std::{error::Error, fs::File};
-use opencv::prelude::*;
+// use opencv::prelude::*;
 
 const MAX_W: u32 = 101;
 const MAX_H: u32 = 103;
