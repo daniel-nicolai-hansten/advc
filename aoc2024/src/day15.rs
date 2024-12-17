@@ -1,5 +1,3 @@
-use std::usize;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::{
     character::complete::{newline, one_of},
@@ -76,13 +74,6 @@ fn part1(input: &(Vec<Vec<char>>, Vec<Dir>)) -> usize {
             }
             _ => unreachable!(),
         }
-        // for ln in &map {
-        //     for c in ln {
-        //         print!("{c}");
-        //     }
-        //     println!();
-        // }
-        // println!();
     }
     box_gps(&map)
 }
@@ -92,7 +83,7 @@ fn box_gps(map: &Vec<Vec<char>>) -> usize {
         .flat_map(|(y, row)| {
             row.iter()
                 .enumerate()
-                .filter_map(move |(x, &c)| if c == 'O' { Some(100 * y + x) } else { None })
+                .filter_map(move |(x, &c)| if c == 'O' || c == '[' { Some(100 * y + x) } else { None })
         })
         .sum()
 }
@@ -118,19 +109,88 @@ fn move_box(map: &mut Vec<Vec<char>>, x: usize, y: usize, dir: &Dir) -> bool {
         _ => false,
     }
 }
+fn move_box2(map: &[Vec<char>], x: usize, y: usize, dir: &Dir) -> Option<Vec<(usize, usize, char)>> {
+    let (you, buddy) = match map[y][x] {
+        '[' => ((x, y), (x + 1, y)),
+        ']' => ((x - 1, y), (x, y)),
+        _ => unreachable!(),
+    };
+    let (nx, ny) = dir.next(you.0, you.1);
+    let (bnx, bny) = dir.next(buddy.0, buddy.1);
+    let mut ret = match (map[ny][nx], map[bny][bnx], dir) {
+        ('#', _, _) | (_, '#', _) => None,
+        ('[', ']', Dir::Up | Dir::Down) => move_box2(map, nx, ny, dir),
+        (']', '[', Dir::Up | Dir::Down) => {
+            let mut v1 = move_box2(map, nx, ny, dir)?;
+            let mut v2 = move_box2(map, bnx, bny, dir)?;
+            v1.append(&mut v2);
+            Some(v1)
+        }
+        (']', '.', Dir::Up | Dir::Down) => move_box2(map, nx, ny, dir),
+        ('.', '[', Dir::Up | Dir::Down) => move_box2(map, bnx, bny, dir),
+
+        ('.', '.', Dir::Up | Dir::Down) => Some(vec![]),
+        ('.', _, Dir::Left) | (_, '.', Dir::Right) => Some(vec![]),
+        (']', _, Dir::Left) => move_box2(map, nx, ny, dir),
+        (_, '[', Dir::Right) => move_box2(map, bnx, bny, dir),
+        _ => None,
+    }?;
+    ret.push((you.0, you.1, '['));
+    ret.push((buddy.0, buddy.1, ']'));
+    Some(ret)
+}
 
 #[aoc(day15, part2)]
-fn part2(input: &(Vec<Vec<char>>, Vec<Dir>)) -> String {
+fn part2(input: &(Vec<Vec<char>>, Vec<Dir>)) -> usize {
     let (map, dirs) = input;
-    let mut map: Vec<Vec<char>> = map.iter().map(|ln| ln.iter().map (| c| match c {
-        '.' => ['.', '.'],
-        '#' => ['#', '#'],
-        'O' => ['[', ']'],
-        '@' => ['@', '.'],
-    }).flatten()).collect();
-
-    "".to_string()
-
+    let mut map: Vec<Vec<char>> = map
+        .iter()
+        .map(|ln| {
+            ln.iter()
+                .map(|c| match c {
+                    '.' => ['.', '.'],
+                    '#' => ['#', '#'],
+                    'O' => ['[', ']'],
+                    '@' => ['@', '.'],
+                    _ => unreachable!(),
+                })
+                .flatten()
+                .collect()
+        })
+        .collect();
+    let mut robotpos = map
+        .iter()
+        .enumerate()
+        .find_map(|(y, row)| row.iter().position(|&c| c == '@').map(|x| (x, y)))
+        .unwrap();
+    for dir in dirs {
+        let (x, y) = robotpos;
+        let (nx, ny) = dir.next(x, y);
+        match map[ny][nx] {
+            '#' => continue,
+            '.' => {
+                map[y][x] = '.';
+                map[ny][nx] = '@';
+                robotpos = (nx, ny);
+            }
+            '[' | ']' => {
+                if let Some(boxes) = move_box2(&map, nx, ny, dir) {
+                    for bx in &boxes {
+                        map[bx.1][bx.0] = '.';
+                    }
+                    for bx in boxes {
+                        let (bnx, bny) = dir.next(bx.0, bx.1);
+                        map[bny][bnx] = bx.2;
+                    }
+                    map[y][x] = '.';
+                    map[ny][nx] = '@';
+                    robotpos = (nx, ny);
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+    box_gps(&map)
 }
 
 #[cfg(test)]
@@ -158,24 +218,12 @@ vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
 ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
 v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
 
-    const TESTINPUT2: &str = "########
-#..O.O.#
-##@.O..#
-#...O..#
-#.#.O..#
-#...O..#
-#......#
-########
-
-<^^>>>vv<v>>v<<";
-
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse(TESTINPUT2)), 2028);
+        assert_eq!(part1(&parse(TESTINPUT)), 10092);
     }
-
     #[test]
     fn part2_example() {
-        // assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
+        assert_eq!(part2(&parse(TESTINPUT)), 9021);
     }
 }

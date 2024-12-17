@@ -23,14 +23,14 @@ fn part2(input: &[u64]) -> u64 {
 }
 fn stone_simulate(input: &[u64], simlen: u32) -> u64 {
     let mut stones = HashMap::default();
-    let mut loopcnt = 0;
+    let mut _loopcnt = 0;
     for stone in input {
         stones.insert(*stone, 1);
     }
     for _i in 0..simlen {
         let mut new_stones = HashMap::default();
         for (stone, cnt) in stones.iter() {
-            loopcnt += 1;
+            _loopcnt += 1;
             match (stone, split(*stone)) {
                 (0, _) => {
                     new_stones.entry(1).and_modify(|c| *c += *cnt).or_insert(*cnt);
@@ -46,7 +46,7 @@ fn stone_simulate(input: &[u64], simlen: u32) -> u64 {
         }
         stones = new_stones;
     }
-    println!("Total unique numbers after {} blinks: {} fn cnt: {}", simlen, stones.len(), loopcnt);
+    // println!("Total unique numbers after {} blinks: {} fn cnt: {}", simlen, stones.len(), loopcnt);
     stones.iter().map(|(_, v)| v).sum()
 }
 
