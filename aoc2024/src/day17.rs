@@ -1,4 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use itertools::Itertools;
 use nom::{
     bytes::complete::tag,
     character::complete::{self},
@@ -41,8 +42,6 @@ fn part1(input: &(HistorianComputer, Vec<u64>)) -> String {
         let opr = Operation::from_optcode(opr);
         hpc.opr(opr, arg);
     }
-    println!("{:?}", hpc);
-    println!("{:?}", program);
     let mut out = String::new();
     for c in hpc.output {
         out.push(std::char::from_digit(c as u32, 10).unwrap());
@@ -57,9 +56,8 @@ fn part2(input: &(HistorianComputer, Vec<u64>)) -> u64 {
     let mut res = 0;
     let (computer, program) = input;
     let mut trya = 0;
-
-    'outer: for prog_num in program.iter().rev() {
-        for i in 0..16 {
+    'outer: for (prog_num1, prog_num2) in program.iter().rev().tuple_windows() {
+        for i in 0..0o100 {
             let mut hpc = computer.clone();
             hpc.reg_a = trya | i;
 
@@ -67,37 +65,25 @@ fn part2(input: &(HistorianComputer, Vec<u64>)) -> u64 {
                 let opr = Operation::from_optcode(opr);
                 hpc.opr(opr, arg);
             }
-            if let Some(num) = hpc.output.get(0) {
-                if num == prog_num {
-                    trya |= i;
-                    trya <<= 3;
-                    break;
+            if let Some(num) = hpc.output.get(0..2) {
+                match num {
+                    &[n1, n2] => {
+                        if n1 == *prog_num2 && n2 == *prog_num1 {
+                            trya |= i;
+                            if &hpc.output == program {
+                                res = trya;
+                                break 'outer;
+                            } else {
+                                trya <<= 3;
+                                break;
+                            }
+                        }
+                    }
+                    _ => (),
                 }
             }
-            if &hpc.output == program {
-                res = trya << i;
-                break 'outer;
-            }
         }
     }
-
-    trya &= !0xff;
-
-    for i in 0..0xff {
-        let mut hpc = computer.clone();
-        hpc.reg_a = trya + i;
-
-        while let Some(&[opr, arg]) = program.get(hpc.pc()..=hpc.pc() + 1) {
-            let opr = Operation::from_optcode(opr);
-            hpc.opr(opr, arg);
-        }
-        if &hpc.output == program {
-            println!("success! {i:x}");
-            res = trya + i;
-            break;
-        }
-    }
-
     res
 }
 #[derive(Debug, Clone)]
@@ -263,6 +249,6 @@ Program: 0,3,5,4,3,0
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse(TESTINPUT5)), 0);
+        assert_eq!(part2(&parse(TESTINPUT5)), 117440);
     }
 }
