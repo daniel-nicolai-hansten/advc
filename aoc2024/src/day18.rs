@@ -1,5 +1,5 @@
 use rustc_hash::FxHashSet as HashSet;
-use std::{collections::VecDeque, rc::Rc};
+use std::{collections::BinaryHeap, rc::Rc};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::{
@@ -11,7 +11,15 @@ use nom::{
 };
 
 use crate::pos::{Coord, Pos};
+#[cfg(not(test))]
 const GRID_SIZE: usize = 70 + 1;
+#[cfg(not(test))]
+const FALLCNT: usize = 1024;
+#[cfg(test)]
+const GRID_SIZE: usize = 6 + 1;
+#[cfg(test)]
+const FALLCNT: usize = 12;
+
 #[aoc_generator(day18)]
 fn parse(input: &str) -> Vec<Pos> {
     let (_i, o) = prse(input).unwrap();
@@ -22,18 +30,17 @@ fn prse(input: &str) -> IResult<&str, Vec<(u32, u32)>> {
 }
 
 #[aoc(day18, part1)]
-fn part1(input: &[Pos]) -> u32 {
+fn part1(input: &[Pos]) -> usize {
     let mut map = [[true; GRID_SIZE]; GRID_SIZE];
     let start = Pos::new(0, 0);
     let end = Pos::new(GRID_SIZE - 1, GRID_SIZE - 1);
-    let mut bytecount = 0;
-    for px in input {
-        map[px.1 as usize][px.0 as usize] = false;
-        bytecount += 1;
-        if bytecount == 1024 {
+    for (cnt, px) in input.iter().enumerate() {
+        if cnt == FALLCNT {
             break;
         }
+        map[px.1 as usize][px.0 as usize] = false;
     }
+
     find_exit(&map, start, end).unwrap().0
 }
 
@@ -46,7 +53,7 @@ fn part2(input: &[Pos]) -> String {
     let mut cursteps = Vec::new();
     for (idx, px) in input.iter().enumerate() {
         map[px.1 as usize][px.0 as usize] = false;
-        if idx < 1024 {
+        if idx < FALLCNT {
             continue;
         }
         if cursteps.contains(px) || cursteps.is_empty() {
@@ -63,16 +70,40 @@ fn part2(input: &[Pos]) -> String {
     }
     format!("{},{}", res.0, res.1)
 }
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct Step {
     pos: Pos,
     last: Option<Rc<Step>>,
+    steps: usize,
+}
+impl Step {
+    fn distcost(&self) -> usize {
+        self.steps.saturating_sub(self.pos.0 + self.pos.1)
+    }
+    fn add(&self, pos: Pos) -> Self {
+        Self {
+            pos,
+            last: Some(Rc::new(self.clone())),
+            steps: self.steps + 1,
+        }
+    }
+}
+impl Ord for Step {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.distcost().cmp(&self.distcost())
+    }
+}
+impl PartialOrd for Step {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
-fn find_exit(map: &[[bool; GRID_SIZE]; GRID_SIZE], start: Pos, end: Pos) -> Option<(u32, Vec<Pos>)> {
+fn find_exit(map: &[[bool; GRID_SIZE]; GRID_SIZE], start: Pos, end: Pos) -> Option<(usize, Vec<Pos>)> {
     let mut res = None;
-    let mut queue = VecDeque::new();
+    let mut queue = BinaryHeap::new();
     let mut visited = HashSet::default();
-    let backtrace = |steps: Rc<Step>| {
+    let backtrace = |steps: Step| {
         let mut ret = vec![steps.pos];
         let mut curstep = &steps.last;
         while let Some(step) = curstep {
@@ -81,11 +112,15 @@ fn find_exit(map: &[[bool; GRID_SIZE]; GRID_SIZE], start: Pos, end: Pos) -> Opti
         }
         ret
     };
-    queue.push_back((0, Rc::new(Step { pos: start, last: None })));
-    while let Some((steps, last_st)) = queue.pop_front() {
+    queue.push(Step {
+        pos: start,
+        last: None,
+        steps: 0,
+    });
+    while let Some(last_st) = queue.pop() {
         let pos = last_st.pos;
         if pos == end {
-            res = Some((steps, backtrace(last_st)));
+            res = Some((last_st.steps, backtrace(last_st)));
             break;
         }
         if visited.contains(&pos) {
@@ -94,11 +129,7 @@ fn find_exit(map: &[[bool; GRID_SIZE]; GRID_SIZE], start: Pos, end: Pos) -> Opti
         visited.insert(pos);
         for new_pos in pos.neighbors(GRID_SIZE, GRID_SIZE) {
             if map[new_pos.y()][new_pos.x()] {
-                let new_step = Rc::new(Step {
-                    pos: new_pos,
-                    last: Some(last_st.clone()),
-                });
-                queue.push_back((steps + 1, new_step));
+                queue.push(last_st.add(new_pos));
             }
         }
     }
@@ -135,11 +166,40 @@ mod tests {
 2,0";
     #[test]
     fn part1_example() {
+        let mut queue = BinaryHeap::new();
+        queue.push(Step {
+            pos: (0, 0),
+            last: None,
+            steps: 4,
+        });
+        queue.push(Step {
+            pos: (0, 0),
+            last: None,
+            steps: 1,
+        });
+        queue.push(Step {
+            pos: (0, 0),
+            last: None,
+            steps: 6,
+        });
+        queue.push(Step {
+            pos: (0, 0),
+            last: None,
+            steps: 14,
+        });
+        assert_eq!(
+            queue.pop().unwrap(),
+            Step {
+                pos: (0, 0),
+                last: None,
+                steps: 1
+            }
+        );
         assert_eq!(part1(&parse(TESTINPUT)), 22);
     }
 
     #[test]
     fn part2_example() {
-        // assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
+        // assert_eq!(part2(&parse(TESTINPUT)), "6,1");
     }
 }

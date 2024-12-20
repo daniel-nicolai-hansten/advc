@@ -236,8 +236,8 @@ Program: 0,3,5,4,3,0
         assert_eq!(computer.reg_b, 26);
     }
 
-    // #[test]
-    // fn part2_example() {
-    //     assert_eq!(part2(&parse(TESTINPUT5)), 117440);
-    // }
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(&parse(TESTINPUT5)), 117440);
+    }
 }

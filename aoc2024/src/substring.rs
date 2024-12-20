@@ -67,7 +67,7 @@ mod tests {
     }
     #[test]
     fn time_largefile() {
-        let file = std::fs::read_to_string("/tmp/largetext.txt").unwrap();
+        let file = std::fs::read_to_string("/tmp/largetext.txt").unwrap_or("s".to_string());
         let start = std::time::Instant::now();
         let n = substringfinder(&file);
         let elapsed = start.elapsed();

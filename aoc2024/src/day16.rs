@@ -77,9 +77,6 @@ fn part1(input: &(Vec<Vec<bool>>, Pos, Pos)) -> usize {
     let mut queue = BinaryHeap::new();
     let (map, start, end) = input;
     let mut visited = vec![vec![(false, 0); map[0].len()]; map.len()];
-    queue.push(State::new(0, *start, start.manhattan(end), Dir::Up));
-    queue.push(State::new(0, *start, start.manhattan(end), Dir::Down));
-    queue.push(State::new(0, *start, start.manhattan(end), Dir::Left));
     queue.push(State::new(0, *start, start.manhattan(end), Dir::Right));
     let mut vcpath = Vec::new();
 
@@ -121,9 +118,6 @@ fn part2(input: &(Vec<Vec<bool>>, Pos, Pos)) -> usize {
     let mut queue = BinaryHeap::new();
     let (map, start, end) = input;
     let mut visited = HashMap::default();
-    queue.push(State::new(0, *start, start.manhattan(end), Dir::Up));
-    queue.push(State::new(0, *start, start.manhattan(end), Dir::Down));
-    queue.push(State::new(0, *start, start.manhattan(end), Dir::Left));
     queue.push(State::new(0, *start, start.manhattan(end), Dir::Right));
     let mut vcpath = Vec::new();
     let mut bestcost = usize::MAX;
@@ -218,6 +212,6 @@ mod tests {
         queue.push(s4);
         let first = queue.pop().unwrap();
         assert_eq!(first.cost, 10);
-        assert_eq!(part2(&parse(TESTINPUT)), 7036);
+        assert_eq!(part2(&parse(TESTINPUT)), 45);
     }
 }

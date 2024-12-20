@@ -43,8 +43,8 @@ pub trait Coord {
     fn new(x: usize, y: usize) -> Pos {
         (x, y)
     }
-    fn manhattan(&self, other: &Pos) -> usize {
-        ((self.x() as isize - other.x() as isize).abs() + (self.y() as isize - other.y() as isize).abs()) as usize
+    fn manhattan(&self, other: &Self) -> usize {
+        self.x().abs_diff(other.x()) + self.y().abs_diff(other.y())
     }
     #[allow(dead_code)]
     fn neighbors(&self, maxy: usize, maxx: usize) -> Vec<Pos> {
