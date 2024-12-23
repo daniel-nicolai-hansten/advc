@@ -56,15 +56,13 @@ fn chk_ptn(towels: &'static [&str], pattern: &'static str) -> Option<u64> {
     let mut ret = None;
     for towel in towels {
         ret = match pattern.strip_prefix(towel) {
-            Some(pattern_left) if pattern_left.is_empty() => { ret.map_or(Some(1), |n | Some(n + 1 ))},
-            Some(pattern_left)  => {chk_ptn(towels, pattern_left).map_or(ret,|v|Some(ret.unwrap_or(0) + v) )}
+            Some(pattern_left) if pattern_left.is_empty() => ret.map_or(Some(1), |n| Some(n + 1)),
+            Some(pattern_left) => chk_ptn(towels, pattern_left).map_or(ret, |v| Some(ret.unwrap_or(0) + v)),
             _ => ret,
         }
     }
     ret
 }
-
-
 
 #[cfg(test)]
 mod tests {

@@ -5,15 +5,23 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use rustc_hash::FxHashSet as HashSet;
 
 #[cfg(not(test))]
-const MINSAVE:usize = 100;
+const MINSAVE: usize = 100;
 #[cfg(test)]
-const MINSAVE:usize = 50;
+const MINSAVE: usize = 50;
 
 #[aoc_generator(day20)]
 fn parse(input: &str) -> (Pos, Pos, Vec<Vec<bool>>) {
-    let map = input.lines().map(|s| s.chars().map(|c| c !=  '#').collect()).collect();
-    let start = input.lines().enumerate().find_map(|(y, s)| s.chars().enumerate().find_map(|(x,c)| (c ==  'S').then(|| x) ).and_then(|x| Some((x,y))) ).unwrap();
-    let end = input.lines().enumerate().find_map(|(y, s)| s.chars().enumerate().find_map(|(x,c)| (c ==  'E').then(|| x) ).and_then(|x| Some((x,y))) ).unwrap();
+    let map = input.lines().map(|s| s.chars().map(|c| c != '#').collect()).collect();
+    let start = input
+        .lines()
+        .enumerate()
+        .find_map(|(y, s)| s.chars().enumerate().find_map(|(x, c)| (c == 'S').then(|| x)).and_then(|x| Some((x, y))))
+        .unwrap();
+    let end = input
+        .lines()
+        .enumerate()
+        .find_map(|(y, s)| s.chars().enumerate().find_map(|(x, c)| (c == 'E').then(|| x)).and_then(|x| Some((x, y))))
+        .unwrap();
     (start, end, map)
 }
 
@@ -33,7 +41,7 @@ fn find_shortcuts(map: &[Vec<bool>], start: &Pos, end: &Pos, cheat_time: usize) 
     let mut visited = Vec::new();
     let mut queue = VecDeque::new();
     queue.push_back(*start);
-    while let Some(pos)  = queue.pop_front(){
+    while let Some(pos) = queue.pop_front() {
         if pos == *end {
             break;
         }
@@ -48,11 +56,7 @@ fn find_shortcuts(map: &[Vec<bool>], start: &Pos, end: &Pos, cheat_time: usize) 
     let mut ret = 0;
     for (steps, pos) in visited.iter().enumerate() {
         if let Some(shortcuts) = visited.get((steps + MINSAVE)..) {
-            ret += shortcuts
-                .iter()
-                .enumerate()
-                .filter(|(c, p)| pos.manhattan(p) <= cheat_time.min(*c))
-                .count();
+            ret += shortcuts.iter().enumerate().filter(|(c, p)| pos.manhattan(p) <= cheat_time.min(*c)).count();
         }
     }
     ret

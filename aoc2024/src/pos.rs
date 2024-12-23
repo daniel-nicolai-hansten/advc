@@ -51,6 +51,18 @@ pub trait Coord {
         [self.up(), self.down(maxy), self.left(), self.right(maxx)].iter().filter_map(|x| *x).collect()
     }
     #[allow(dead_code)]
+    fn neighbors_dir(&self, maxy: usize, maxx: usize) -> Vec<(Pos, Dir)> {
+        vec![
+            (self.up(), Dir::Up),
+            (self.down(maxy), Dir::Down),
+            (self.left(), Dir::Left),
+            (self.right(maxx), Dir::Right),
+        ]
+        .iter()
+        .filter_map(|(x, y)| x.map(|x| (x, *y)))
+        .collect()
+    }
+    #[allow(dead_code)]
     fn all_neighbors(&self) -> Vec<Pos> {
         vec![self.up(), self.down(usize::MAX), self.left(), self.right(usize::MAX)]
             .iter()
@@ -76,5 +88,15 @@ pub enum Dir {
 impl Dir {
     pub fn dirs() -> Vec<Self> {
         vec![Self::Up, Self::Down, Self::Left, Self::Right]
+    }
+}
+impl Into<char> for Dir {
+    fn into(self) -> char {
+        match self {
+            Self::Up => '^',
+            Self::Down => 'v',
+            Self::Left => '<',
+            Self::Right => '>',
+        }
     }
 }
