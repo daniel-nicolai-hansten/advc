@@ -35,7 +35,7 @@ fn part1(map: &[Vec<u8>]) -> u32 {
 }
 
 #[aoc(day9, part2)]
-fn part2(input: &[Vec<u8>]) -> u32 {
+fn part2(input: &[Vec<u8>]) -> usize {
     let mut res = vec![];
     let lowpos = find_lowest(input);
     for pos in lowpos {
@@ -47,11 +47,8 @@ fn part2(input: &[Vec<u8>]) -> u32 {
                 continue;
             }
             visited.insert(pos);
-            if pos.y() == input.len() - 1 {
-                return dist;
-            }
             for neigh in pos.neighbors(input.len(), input[0].len()) {
-                if input[neigh.y()][neigh.x()] > input[pos.y()][pos.x()] {
+                if input[neigh.y()][neigh.x()] > input[pos.y()][pos.x()]  && input[neigh.y()][neigh.x()] != 9{
                     que.push_back((neigh, dist + 1));
                 }
             }
@@ -59,7 +56,9 @@ fn part2(input: &[Vec<u8>]) -> u32 {
         res.push(visited.len());
 
     }
-    *res.iter().max().unwrap() as u32
+    res.sort();
+    res.iter().rev().take(3).fold(1,|acc, n| acc * n)
+    
     
 
 }
@@ -81,6 +80,6 @@ mod tests {
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse("<EXAMPLE>")), 1134);
+        assert_eq!(part2(&parse(TESTINPUT)), 1134);
     }
 }

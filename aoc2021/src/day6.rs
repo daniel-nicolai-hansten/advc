@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 #[aoc_generator(day6)]
 fn parse(input: &str) -> Vec<u8> {
@@ -19,7 +18,7 @@ fn part2(input: &[u8]) -> u64 {
 }
 
 fn run_sim(input: &[u8], simlen: u32) -> Option<u64>{
-    let mut fishies: VecDeque<u64>  = [0,0,0,0,0,0,0,0,0].into();
+    let mut fishies: VecDeque<u64>  = [0;9].into();
     for fish in input {
         *fishies.get_mut(*fish as usize)? += 1;
     }

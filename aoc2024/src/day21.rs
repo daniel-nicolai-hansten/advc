@@ -102,9 +102,10 @@ fn get_sequence(sequence: String, depth: usize, pad: Pads) -> usize {
         let paths = find_path(b, pad, a);
         ret += match depth {
             0 => paths[0].len() + 1,
-            _ => paths.iter().cloned().map(|path| {
-                    get_sequence(path + "A", depth - 1, Pads::DirPad)
-                })
+            _ => paths
+                .iter()
+                .cloned()
+                .map(|path| get_sequence(path + "A", depth - 1, Pads::DirPad))
                 .min()
                 .unwrap(),
         }
