@@ -12,11 +12,11 @@ fn parse(input: &str) -> Vec<u32> {
 }
 
 #[aoc(day22, part1)]
-fn part1(input: &[u32]) -> u32 {
+fn part1(input: &[u32]) -> u64 {
     let mut ret = 0;
     for i in input {
         let mut random = std::iter::successors(Some(*i), |&n| Some(rng(n)));
-        ret += random.nth(2000).unwrap();
+        ret += random.nth(2000).unwrap() as u64;
     }
     ret
 }

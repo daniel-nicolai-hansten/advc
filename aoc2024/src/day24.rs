@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
+use log::debug;
 use nom::{
     bytes::complete::tag,
     character::complete::{self, alpha1, alphanumeric1, newline, space0},
@@ -9,8 +10,11 @@ use nom::{
     sequence::{separated_pair, tuple},
     IResult, Parser,
 };
+
 use petgraph::{
-    dot::{Config, Dot}, graph, Graph
+    dot::Dot,
+    visit::{EdgeRef, NodeRef},
+    Graph,
 };
 #[aoc_generator(day24)]
 fn parse(input: &str) -> (Vec<(String, u8)>, Vec<((String, Opr, String), String)>) {
@@ -41,6 +45,7 @@ fn prse(input: &str) -> IResult<&str, (Vec<(String, u8)>, Vec<((String, Opr, Str
     )(i)?;
     Ok((i, (o, o2)))
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Opr {
     AND,
     OR,
@@ -80,55 +85,17 @@ fn part1(input: &(Vec<(String, u8)>, Vec<((String, Opr, String), String)>)) -> u
         .collect();
     let tot = res.iter().fold(0_u64, |acc, (_wires, value)| acc << 1 | *value as u64);
 
-    println!("{:?}  {:b}", res, tot);
+    debug!("{:?}  {:b}", res, tot);
     tot
-}
-fn run_calculator(x: u64, y: u64, ops: &Vec<((String, Opr, String), String)>) -> u64 {
-    let mut wires = HashMap::new();
-    for i in 0..u64::BITS {
-        let xname = format!("x{:02}", i);
-        let yname = format!("y{:02}", i);
-        wires.insert(xname, ((x >> i) & 1) as u8);
-        wires.insert(yname, ((y >> i) & 1) as u8);
-    }
-    loop {
-        let mut missing = false;
-        for ((a, op, b), c) in ops {
-            match (wires.get(a.as_str()), wires.get(b.as_str()), op) {
-                (Some(siga), Some(sigb), Opr::AND) => {
-                    wires.insert(c.clone(), siga & sigb);
-                }
-                (Some(siga), Some(sigb), Opr::OR) => {
-                    wires.insert(c.clone(), siga | sigb);
-                }
-                (Some(siga), Some(sigb), Opr::XOR) => {
-                    wires.insert(c.clone(), siga ^ sigb);
-                }
-                _ => {
-                    missing = true;
-                }
-            }
-        }
-        if !missing {
-            break;
-        }
-    }
-    let res: Vec<(String, u8)> = wires
-        .iter()
-        .filter_map(|(wires, &value)| wires.starts_with("z").then_some((wires.clone(), value)))
-        .sorted()
-        .rev()
-        .collect();
-    res.iter().fold(0_u64, |acc, (_wires, value)| acc << 1 | *value as u64)
 }
 
 #[aoc(day24, part2)]
 fn part2(input: &(Vec<(String, u8)>, Vec<((String, Opr, String), String)>)) -> String {
-    let mut graph = Graph::new_undirected();
+    let mut graph = Graph::new();
     let mut nodes: HashMap<&str, petgraph::prelude::NodeIndex> = HashMap::new();
     let (wires, ops) = input;
     for wire in wires {
-        if let Some(_) = nodes.insert(&wire.0, graph.add_node(&wire.0)) {
+        if let Some(_) = nodes.insert(&wire.0, graph.add_node(wire.0.as_str())) {
             continue;
         }
     }
@@ -136,7 +103,7 @@ fn part2(input: &(Vec<(String, u8)>, Vec<((String, Opr, String), String)>)) -> S
         let a = match nodes.get(a.as_str()) {
             Some(a) => *a,
             None => {
-                let idx = graph.add_node(a);
+                let idx = graph.add_node(a.as_str());
                 nodes.insert(a, idx);
                 idx
             }
@@ -144,7 +111,7 @@ fn part2(input: &(Vec<(String, u8)>, Vec<((String, Opr, String), String)>)) -> S
         let b = match nodes.get(b.as_str()) {
             Some(b) => *b,
             None => {
-                let idx = graph.add_node(b);
+                let idx = graph.add_node(b.as_str());
                 nodes.insert(b, idx);
                 idx
             }
@@ -152,45 +119,125 @@ fn part2(input: &(Vec<(String, u8)>, Vec<((String, Opr, String), String)>)) -> S
         let c = match nodes.get(c.as_str()) {
             Some(c) => *c,
             None => {
-                let idx = graph.add_node(c);
+                let idx = graph.add_node(c.as_str());
                 nodes.insert(c, idx);
                 idx
             }
         };
-        match op {
-            Opr::AND => {
-                graph.add_edge(a, c, "AND");
-                graph.add_edge(b, c, "AND");
-            }
-            Opr::OR => {
-                graph.add_edge(a, c, "OR");
-                graph.add_edge(b, c, "OR");
-            }
-            Opr::XOR => {
-                graph.add_edge(a, c, "XOR");
-                graph.add_edge(b, c, "XOR");
-            }
-        }
+        graph.add_edge(a, c, *op);
+        graph.add_edge(b, c, *op);
     }
-    let res = run_calculator(u64::MAX, 0, ops);
-    println!("{:b}", res);
-    let res = run_calculator(u64::MAX/2, u64::MAX/2 + 1, ops);
-    println!("{:b}", res);
-    for (&zeds, idx) in nodes.iter().filter_map(|(zeds, idx)| zeds.starts_with("z").then_some((zeds, *idx))) {
-        for edge in  graph.edges(idx) {
-            if *edge.weight() == "XOR" {
-                continue;
-            }
-            println!("{:?} {:?}", zeds, edge);
-        }
-
-    }
-    // output to dot file
-    let dot = format!("{:?}", Dot::with_config(&graph, &[Config::GraphContentOnly]));
+    let dot = format!("{:?}", Dot::with_config(&graph, &[]));
     std::fs::write("graph.dot", dot).unwrap();
-    "".to_string()
+    match verify_calc(graph, nodes) {
+        Ok(res) => {
+            let mut res = res;
+            res.sort();
+            res.join(",")
+        }
+        _ => "Error!".to_string(),
+    }
 }
+fn verify_calc(graph: Graph<&str, Opr>, idxmap: HashMap<&str, petgraph::prelude::NodeIndex>) -> anyhow::Result<Vec<String>> {
+    let mut carry = None;
+    let mut errorlist = Vec::new();
+    for n in 0..45 {
+        let xidx = idxmap.get(format!("x{n:02}").as_str()).unwrap();
+        let yidx = idxmap.get(format!("y{n:02}").as_str()).unwrap();
 
+        let child = |n1, n2, opr| {
+            let n1 = n1?;
+            let n2 = n2?;
+            let xor1 = graph
+                .edges(n1)
+                .find_map(|n| (*n.weight() == opr).then(|| graph.edge_endpoints(n.id())))
+                .flatten()?;
+            let xor2 = graph
+                .edges(n2)
+                .find_map(|n| (*n.weight() == opr).then(|| graph.edge_endpoints(n.id())))
+                .flatten()?;
+            match (xor1, xor2) {
+                ((_, xid), (_, yid)) if xid == yid => Some(xid),
+                _ => None,
+            }
+        };
+
+        if carry.is_none() {
+            carry = child(Some(*xidx), Some(*yidx), Opr::AND);
+            let z_out = child(Some(*xidx), Some(*yidx), Opr::XOR);
+            if z_out.is_none() || graph.node_weight(z_out.unwrap().id()).unwrap() != &format!("z{n:02}").as_str() {
+                errorlist.push(format!("x{n:02}"));
+                errorlist.push(format!("y{n:02}"));
+            }
+            if carry.is_none() {
+                errorlist.push(format!("x{n:02}"));
+                errorlist.push(format!("y{n:02}"));
+                return Ok(errorlist);
+            }
+        } else {
+            let mut xor1 = child(Some(*xidx), Some(*yidx), Opr::XOR);
+            let mut and1 = child(Some(*xidx), Some(*yidx), Opr::AND);
+            let mut xor2 = match child(xor1, carry, Opr::XOR) {
+                Some(res) => Some(res),
+                None if child(and1, carry, Opr::XOR).is_some() => {
+                    errorlist.push(graph.node_weight(xor1.unwrap()).unwrap().to_string());
+                    errorlist.push(graph.node_weight(and1.unwrap()).unwrap().to_string());
+                    let xor1_tmp = xor1;
+                    xor1 = and1;
+                    and1 = xor1_tmp;
+                    child(xor1, carry, Opr::XOR)
+                }
+                None => None,
+            };
+
+            let mut and2 = child(xor1, carry, Opr::AND);
+            carry = child(and2, and1, Opr::OR);
+            let names = ["xor1", "and1", "xor2", "and2", "carry"];
+            'chkloop: for _ in 0..5 {
+                for (i, node) in [xor1, and1, xor2, and2, carry].iter().enumerate() {
+                    if let Some(nde) = node {
+                        match (names[i], graph.node_weight(*nde).unwrap() == &format!("z{n:02}").as_str()) {
+                            ("xor2", false) => {
+                                errorlist.push(graph.node_weight(*nde).unwrap().to_string());
+                            }
+                            ("and2", true) => {
+                                errorlist.push(graph.node_weight(*nde).unwrap().to_string());
+                                let xor2_tmp = xor2;
+                                xor2 = and2;
+                                and2 = xor2_tmp;
+                                carry = child(and2, and1, Opr::OR);
+                                debug!("swapped and2 and z{n:02}");
+                            }
+                            ("carry", true) => {
+                                errorlist.push(graph.node_weight(*nde).unwrap().to_string());
+                                let xor2_tmp = xor2;
+                                xor2 = carry;
+                                carry = xor2_tmp;
+                                debug!("swapped carry and z{n:02}");
+                            }
+                            ("and1", true) => {
+                                errorlist.push(graph.node_weight(*nde).unwrap().to_string());
+                                let and1_tmp = and1;
+                                and1 = xor2;
+                                xor2 = and1_tmp;
+                                carry = child(and2, and1, Opr::OR);
+                                debug!("swapped and1 and z{n:02}");
+                            }
+                            _ => (),
+                        }
+                        debug!("{}: found {} at: {}", n, names[i], graph.node_weight(*nde).unwrap());
+                    } else {
+                        debug!("{}: missing {}", n, names[i]);
+                        continue 'chkloop;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    Ok(errorlist)
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -249,6 +296,6 @@ tnw OR pbm -> gnj";
 
     #[test]
     fn part2_example() {
-        // assert_eq!(part2(&parse(TESTINPUT)), "<RESULT>");
+        assert_eq!(part2(&parse(TESTINPUT)), "");
     }
 }
