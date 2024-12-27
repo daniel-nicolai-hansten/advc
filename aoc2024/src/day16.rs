@@ -1,5 +1,8 @@
+use log::debug;
 use rustc_hash::FxHashMap as HashMap;
-use std::collections::BinaryHeap;
+use rustc_hash::FxHashSet as HashSet;
+
+use std::{collections::BinaryHeap, rc::Rc};
 
 use crate::{
     pos::Dir,
@@ -38,11 +41,27 @@ fn parse(input: &str) -> (Vec<Vec<bool>>, Pos, Pos) {
     )
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
+struct Steps {
+    curr: Pos,
+    dir: Dir,
+    last: Option<Rc<Steps>>,
+}
+impl Steps {
+    fn new(curr: Pos, dir: Dir) -> Self {
+        Self { curr, last: None, dir }
+    }
+    fn add_step(&mut self, step: Pos, dir: Dir) {
+        self.last = Some(Rc::new(self.clone()));
+        self.curr = step;
+        self.dir = dir;
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct State {
     cost: usize,
     pos: Pos,
     dir: Dir,
-    steps: Vec<Pos>,
+    steps: Steps,
     distance: usize,
 }
 impl State {
@@ -52,14 +71,14 @@ impl State {
             pos,
             distance,
             dir,
-            steps: vec![pos],
+            steps: Steps::new(pos, dir),
         }
     }
     fn distcost(&self) -> usize {
         self.cost + (self.distance)
     }
-    fn add_step(&mut self, step: Pos) {
-        self.steps.push(step);
+    fn add_step(&mut self, step: Pos, dir: Dir) {
+        self.steps.add_step(step, dir);
     }
 }
 impl Ord for State {
@@ -119,7 +138,7 @@ fn part2(input: &(Vec<Vec<bool>>, Pos, Pos)) -> usize {
     let (map, start, end) = input;
     let mut visited = HashMap::default();
     queue.push(State::new(0, *start, start.manhattan(end), Dir::Right));
-    let mut vcpath = Vec::new();
+    let mut vcpath = Steps::new(*start, Dir::Right);
     let mut bestcost = usize::MAX;
 
     while let Some(State {
@@ -133,19 +152,24 @@ fn part2(input: &(Vec<Vec<bool>>, Pos, Pos)) -> usize {
         if cost > bestcost {
             break;
         }
-        if let Some(oldvisit) = visited.insert((pos, dir), cost) {
+        if let Some((oldvisit, mut oldsteps)) = visited.insert((pos, dir), (cost, vec![steps.clone()])) {
             if oldvisit < cost {
-                let _ = visited.insert((pos, dir), oldvisit);
+                let _ = visited.insert((pos, dir), (oldvisit, oldsteps));
+                continue;
+            }
+            if oldvisit == cost {
+                oldsteps.push(steps.clone());
+                debug!("merged path at pos {:?}, ", pos,);
+                let _ = visited.insert((pos, dir), (oldvisit, oldsteps));
+
                 continue;
             }
         }
         if pos == *end {
-            if cost < bestcost {
+            if cost <= bestcost {
+                debug!("new best cost: {} {:?}", cost, pos);
                 bestcost = cost;
-                vcpath.clear();
-            }
-            if cost == bestcost {
-                vcpath.push((cost, steps.clone()));
+                vcpath = steps;
             }
             continue;
         }
@@ -158,21 +182,26 @@ fn part2(input: &(Vec<Vec<bool>>, Pos, Pos)) -> usize {
                 if map[newpos.y()][newpos.x()] {
                     let mut newstate = State::new(cost, newpos, newpos.manhattan(end), nwdir);
                     newstate.steps = steps.clone();
-                    newstate.add_step(newpos);
+                    newstate.add_step(newpos, nwdir);
                     queue.push(newstate);
                 }
             }
         }
     }
-
-    let mut beststeps = vcpath
-        .iter()
-        .filter_map(|(cst, stp)| (cst == &bestcost).then_some(stp))
-        .flatten()
-        .collect::<Vec<_>>();
-    beststeps.sort_unstable();
-    beststeps.dedup();
-    beststeps.len()
+    // backtrack vcpath to find all the steps
+    let mut steps = HashSet::default();
+    let mut queue2 = vec![vcpath];
+    while let Some(step) = queue2.pop() {
+        steps.insert(step.curr);
+        if let Some((_, vis_next)) = visited.get(&(step.curr, step.dir)) {
+            for nextstep in vis_next {
+                if let Some(last) = &nextstep.last {
+                    queue2.push(last.as_ref().clone());
+                }
+            }
+        }
+    }
+    steps.len()
 }
 
 #[cfg(test)]

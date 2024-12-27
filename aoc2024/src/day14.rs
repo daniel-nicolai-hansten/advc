@@ -6,8 +6,8 @@ use nom::{
     IResult,
 };
 
+use std::io::BufWriter;
 use std::{error::Error, fs::File};
-use std::{io::BufWriter, sync::mpsc, thread};
 #[cfg(test)]
 const MAX_W: usize = 11;
 #[cfg(test)]
@@ -70,22 +70,18 @@ fn part1(input: &[Robot]) -> usize {
 #[aoc(day14, part2)]
 fn part2(input: &[Robot]) -> usize {
     let mut ret = 0;
-    let (sender, reciver) = mpsc::channel();
-    let mut robots = input.to_vec();
-    let joinhandle = thread::spawn(move || {
-        for _i in 0..10000 {
-            for r in robots.iter_mut() {
-                r.run();
-            }
-            let mut img = vec![vec![0_u8; MAX_W]; MAX_H];
-            for r in robots.iter() {
-                img[r.position.1][r.position.0] = 0xff;
-            }
-            let _ = sender.send(img);
-        }
-    });
     let mut imgs_checked = 0;
-    while let Ok(img) = reciver.recv() {
+
+    let mut robots = input.to_vec();
+
+    for _i in 0..10000 {
+        for r in robots.iter_mut() {
+            r.run();
+        }
+        let mut img = vec![vec![0_u8; MAX_W]; MAX_H];
+        for r in robots.iter() {
+            img[r.position.1][r.position.0] = 0xff;
+        }
         imgs_checked += 1;
         let cnt = med_filter(&img);
         if cnt > 200 {
@@ -94,7 +90,7 @@ fn part2(input: &[Robot]) -> usize {
             break;
         }
     }
-    let _ = joinhandle.join();
+
     ret
 }
 const MED_IDX: usize = 3;
