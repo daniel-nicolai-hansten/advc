@@ -48,19 +48,15 @@ fn part2(input: &[Vec<u8>]) -> usize {
             }
             visited.insert(pos);
             for neigh in pos.neighbors(input.len(), input[0].len()) {
-                if input[neigh.y()][neigh.x()] > input[pos.y()][pos.x()]  && input[neigh.y()][neigh.x()] != 9{
+                if input[neigh.y()][neigh.x()] > input[pos.y()][pos.x()] && input[neigh.y()][neigh.x()] != 9 {
                     que.push_back((neigh, dist + 1));
                 }
             }
         }
         res.push(visited.len());
-
     }
     res.sort();
-    res.iter().rev().take(3).fold(1,|acc, n| acc * n)
-    
-    
-
+    res.iter().rev().take(3).fold(1, |acc, n| acc * n)
 }
 
 #[cfg(test)]

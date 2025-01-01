@@ -1,30 +1,43 @@
-use std::fs;
-fn main() {
-    let input = fs::read_to_string("./input.txt").unwrap();
-    pt1(&input);
-    pt2(&input);
-
+use aoc_runner_derive::{aoc, aoc_generator};
+use nom::{bytes::complete::tag, error::Error, multi::separated_list0};
+#[aoc_generator(day4)]
+fn parse(input: &str) -> (Vec<u32>, Vec<BingoBoard>) {
+    let (o, moves) = separated_list0(tag(","), nom::character::complete::u32::<&str, Error<&str>>)(input).unwrap();
+    let mut bingoboards = vec![];
+    for line in o.split("\n\n") {
+        if line.is_empty() {
+            continue;
+        }
+        bingoboards.push(line.into());
+    }
+    (moves, bingoboards)
 }
 
-fn pt1(input: &str) {
-    let mut boards = parse_input(&input);
-    'outer: for n in MOVES.split(',') {
+#[aoc(day4, part1)]
+fn part1(input: &(Vec<u32>, Vec<BingoBoard>)) -> u32 {
+    let mut boards = input.1.clone();
+    let moves = &input.0;
+    let mut ret = 0;
+    'outer: for n in moves {
         for board in &mut boards {
-            board.check(u32::from_str_radix(n, 10).unwrap());
+            board.check(*n);
             if board.has_bingo() {
-                println!("Win at number {}, score: {}", n, board.get_score());
+                ret = board.get_score();
                 break 'outer;
             }
         }
     }
+    ret
 }
 
-fn pt2(input: &str) {
-    let mut boards = parse_input(&input);
+#[aoc(day4, part2)]
+fn part2(input: &(Vec<u32>, Vec<BingoBoard>)) -> u32 {
+    let mut boards = input.1.clone();
+    let moves = &input.0;
     for _ in 0..1000 {
-        'outer: for n in MOVES.split(',') {
+        'outer: for n in moves {
             for board in &mut boards {
-                board.check(u32::from_str_radix(n, 10).unwrap());
+                board.check(*n);
                 if board.has_bingo() {
                     break 'outer;
                 }
@@ -33,21 +46,12 @@ fn pt2(input: &str) {
         if boards.len() == 1 && boards[0].has_bingo() {
             break;
         }
-        boards = boards.into_iter().filter(|bb| !bb.has_bingo() ).collect();
+        boards = boards.into_iter().filter(|bb| !bb.has_bingo()).collect();
     }
-    println!("Last board score: {}, board: {:?} {:?}", boards[0].get_score(), boards[0].board, boards[0].checked );
+    boards[0].get_score()
 }
 
-const MOVES: &str = "92,12,94,64,14,4,99,71,47,59,37,73,29,7,16,32,40,53,30,76,74,39,70,88,55,45,17,0,24,65,35,20,63,68,89,84,33,66,18,50,38,10,83,75,67,42,3,56,82,34,90,46,87,52,49,2,21,62,93,86,25,78,19,57,77,26,81,15,23,31,54,48,98,11,91,85,60,72,8,69,6,22,97,96,80,95,58,36,44,1,51,43,9,61,41,79,5,27,28,13";
-
-fn parse_input(input: &str) -> Vec<BingoBoard> {
-    let mut ret: Vec<BingoBoard> = vec![];
-    for line in input.split("\n\n") {
-        ret.push(line.into());
-    }
-    ret
-}
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct BingoBoard {
     lastnum: u32,
     board: [[u32; 5]; 5],
@@ -120,7 +124,7 @@ impl BingoBoard {
                     }
                 }
             }
-        } 
+        }
         sum * self.lastnum
     }
 }
@@ -138,25 +142,39 @@ impl From<&str> for BingoBoard {
 }
 
 #[cfg(test)]
-mod tests1 {
+mod tests {
     use super::*;
-    const NUMS: &str = "7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1";
+
     const BOARD1: &str = "3 15  0  2 22
      9 18 13 17  5
      19  8  7 25 23
      20 11 10 24  4
      14 21 16 12  6";
-    const BOARD2: &str = "3 15  0  2 22
-     9 18 13 17  5
-     19  8  7 25 23
-     20 11 10 24  4
-     14 21 16 12  6";
+
     const BOARD3: &str = "14 21 17 24  4
      10 16 15  9 19
      18  8 23 26 20
      22 11 13  6  5
       2  0 12  3  7";
+    const TESTINPUT: &str = "7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
+22 13 17 11  0
+ 8  2 23  4 24
+21  9 14 16  7
+ 6 10  3 18  5
+ 1 12 20 15 19
+
+ 3 15  0  2 22
+ 9 18 13 17  5
+19  8  7 25 23
+20 11 10 24  4
+14 21 16 12  6
+
+14 21 17 24  4
+10 16 15  9 19
+18  8 23 26 20
+22 11 13  6  5
+ 2  0 12  3  7";
     #[test]
     fn parse_bingoboard() {
         let bb: BingoBoard = BOARD1.into();
@@ -179,17 +197,14 @@ mod tests1 {
         assert!(bb2.has_bingo());
         assert!(bb1.has_bingo());
     }
+
     #[test]
-    fn play_bingo() {
-        let mut bingos: Vec<BingoBoard> = vec![BOARD1.into(), BOARD2.into(), BOARD3.into()];
-        'outer: for n in NUMS.split(',') {
-            for bingo in &mut bingos {
-                bingo.check(u32::from_str_radix(n, 10).unwrap());
-                if bingo.has_bingo() {
-                    println!("Win at number {}, score: {}", n, bingo.get_score());
-                    break 'outer;
-                }
-            }
-        }
+    fn part1_example() {
+        assert_eq!(part1(&parse(TESTINPUT)), 4512);
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(&parse(TESTINPUT)), 1924);
     }
 }

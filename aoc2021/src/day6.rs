@@ -1,10 +1,8 @@
-use std::collections::VecDeque;
 use aoc_runner_derive::{aoc, aoc_generator};
+use std::collections::VecDeque;
 #[aoc_generator(day6)]
 fn parse(input: &str) -> Vec<u8> {
-    input.split(",")
-        .map(|x|  x.parse::<u8>().unwrap())
-        .collect()
+    input.split(",").map(|x| x.parse::<u8>().unwrap()).collect()
 }
 
 #[aoc(day6, part1)]
@@ -17,8 +15,8 @@ fn part2(input: &[u8]) -> u64 {
     run_sim(input, 256).unwrap()
 }
 
-fn run_sim(input: &[u8], simlen: u32) -> Option<u64>{
-    let mut fishies: VecDeque<u64>  = [0;9].into();
+fn run_sim(input: &[u8], simlen: u32) -> Option<u64> {
+    let mut fishies: VecDeque<u64> = [0; 9].into();
     for fish in input {
         *fishies.get_mut(*fish as usize)? += 1;
     }
@@ -29,7 +27,6 @@ fn run_sim(input: &[u8], simlen: u32) -> Option<u64>{
     }
     Some(fishies.iter().sum())
 }
-
 
 #[cfg(test)]
 mod tests {
