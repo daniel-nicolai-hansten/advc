@@ -1,6 +1,9 @@
 mod day1;
 mod day10;
 mod day11;
+mod day12;
+mod day13;
+mod day14;
 mod day2;
 mod day3;
 mod day4;
@@ -16,3 +19,7 @@ extern crate aoc_runner;
 extern crate aoc_runner_derive;
 
 aoc_lib! { year = 2021 }
+fn str_to_static(instr: &str) -> &'static str {
+    let string = instr.to_owned();
+    Box::leak(string.into_boxed_str())
+}
