@@ -1,0 +1,18 @@
+[package]
+name = "other_puzzles"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "hest_er_best"
+path = "src/hest_er_best/main.rs"
+
+[[bin]]
+name = "battleship"
+path = "src/battleship/main.rs"
+
+[dependencies]
+itertools = "0.14.0"
+common = { path = "../common" }
+rand = "0.9.2"
+prompted = "0.2.8"
