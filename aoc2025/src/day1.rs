@@ -1,12 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::{
-    bytes::complete::tag,
-    character::complete::{alpha1, line_ending, multispace0, multispace1, space0, space1},
-    combinator::{all_consuming, map, map_res, opt},
-    multi::{many0, many1, separated_list0, separated_list1},
-    sequence::{delimited, preceded, terminated, tuple},
-    IResult,
-};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Direction {
     Left,
@@ -45,22 +38,11 @@ fn part1(input: &[(Direction, u32)]) -> usize {
             Direction::Right => pos + dist,
         };
         pos = pos % 100;
-        println!("Moved {:?} by {}, new pos {}", dir, dist, pos);
         visited.push(pos);
     }
     visited.iter().filter(|&&p| p == 0).count()
 }
-fn turn(dir: Direction, dist: u32, pos: u32) -> u32 {
-    let dist = dist % 100;
-    let mut pos = match dir {
-        Direction::Left => pos.checked_sub(dist).unwrap_or({
-            let wrap = dist.checked_sub(pos).unwrap_or(0);
-            100 - wrap
-        }),
-        Direction::Right => pos + dist,
-    };
-    pos % 100
-}
+
 #[aoc(day1, part2)]
 fn part2(input: &[(Direction, u32)]) -> usize {
     let mut pos: i32 = 50;

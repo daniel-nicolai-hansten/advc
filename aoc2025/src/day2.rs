@@ -1,25 +1,26 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::Itertools;
+use tinyvec::ArrayVec;
+
 #[aoc_generator(day2)]
-fn parse(input: &str) -> Vec<(String, String)> {
+fn parse(input: &str) -> Vec<(u64, u64)> {
     let chunks = input.split(',').map(|s| s.trim());
     chunks
         .map(|chunk| {
-            let parts: Vec<&str> = chunk.split('-').collect();
-            (parts[0].to_string(), parts[1].to_string())
+            let parts = chunk.split_once('-').unwrap();
+            (parts.0.parse::<u64>().unwrap(), parts.1.parse::<u64>().unwrap())
         })
         .collect()
 }
 
 #[aoc(day2, part1)]
-fn part1(input: &[(String, String)]) -> u64 {
+fn part1(input: &[(u64, u64)]) -> u64 {
     let mut sum = 0;
+    let mut num_str = ArrayVec::<[u8; 20]>::new();
     for (start, end) in input.iter() {
-        let start = start.parse::<u64>().unwrap();
-        let end = end.parse::<u64>().unwrap();
-        for num in start..=end {
-            let num_str = num.to_string();
-            if find_repeated(&num_str) {
+        for num in *start..=*end {
+            numtovec(num, &mut num_str);
+            let (p1, p2) = num_str.split_at(num_str.len() / 2);
+            if p1 == p2 {
                 sum += num;
             }
         }
@@ -28,41 +29,46 @@ fn part1(input: &[(String, String)]) -> u64 {
 }
 
 #[aoc(day2, part2)]
-fn part2(input: &[(String, String)]) -> u64 {
+fn part2(input: &[(u64, u64)]) -> u64 {
     let mut sum = 0;
+    let mut num_str = ArrayVec::<[u8; 20]>::new();
     for (start, end) in input.iter() {
-        let start = start.parse::<u64>().unwrap();
-        let end = end.parse::<u64>().unwrap();
-        for num in start..=end {
-            let num_str = num.to_string();
-            if find_repeated(&num_str) || find_repeated2(&num_str) {
+        for num in *start..=*end {
+            numtovec(num, &mut num_str);
+            if find_repeated(&num_str) {
                 sum += num;
             }
         }
     }
     sum
 }
-
-fn find_repeated(num: &str) -> bool {
-    let (p1, p2) = num.split_at(num.len() / 2);
-    p1 == p2
+#[inline]
+fn numtovec(num: u64, vec: &mut ArrayVec<[u8; 20]>) {
+    vec.clear();
+    let mut n = num;
+    while n > 0 {
+        vec.push((n % 10) as u8);
+        n /= 10;
+    }
 }
 
-fn find_repeated2(num: &str) -> bool {
-    'outer: for i in 1..=num.len() / 2 {
-        let chunk = &num[0..i];
-        if chunk != &num[i..2 * i] {
-            continue;
-        }
-        let chunk2 = &num[i..];
-        for part in &chunk2.chars().chunks(i) {
-            let part_str: String = part.collect();
-            if part_str != chunk {
-                continue 'outer;
-            }
-        }
+fn find_repeated(num: &[u8]) -> bool {
+    let (p1, p2) = num.split_at(num.len() / 2);
+    if p1 == p2 {
         return true;
     }
+    for i in 2..=num.len() / 2 {
+        if num.len() % i != 0 {
+            continue;
+        }
+        let mut chunks = num.chunks(i);
+        if let Some(first) = chunks.next() {
+            if chunks.all(|chunk| chunk == first) {
+                return true;
+            }
+        }
+    }
+
     false
 }
 
@@ -77,7 +83,6 @@ mod tests {
 
     #[test]
     fn part2_example() {
-        assert!(find_repeated2("111"));
         assert_eq!(part2(&parse(TESTINPUT)), 4174379265);
     }
 }

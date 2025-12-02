@@ -1,0 +1,15 @@
+[package]
+name = "aoc2016"
+version = "0.1.0"
+edition = "2024"
+
+[profile.release]
+strip = "debuginfo"
+lto = true
+panic = "abort"
+
+[dependencies]
+aoc-runner = "0.3.0"
+aoc-runner-derive = "0.3.0"
+nom = "8.0.0"
+common = { path = "../common" }
