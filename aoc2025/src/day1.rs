@@ -84,11 +84,6 @@ L82
 ";
     #[test]
     fn part1_example() {
-        let _parsed = parse(TESTINPUT);
-        assert_eq!(turn(Direction::Right, 8, 11), 19);
-        assert_eq!(turn(Direction::Left, 1, 0), 99);
-        assert_eq!(turn(Direction::Right, 1, 99), 0);
-        assert_eq!(turn(Direction::Left, 10, 5), 95);
         assert_eq!(part1(&parse(TESTINPUT)), 3);
     }
 

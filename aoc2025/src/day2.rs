@@ -43,12 +43,11 @@ fn part2(input: &[(u64, u64)]) -> u64 {
     sum
 }
 #[inline]
-fn numtovec(num: u64, vec: &mut ArrayVec<[u8; 20]>) {
+fn numtovec(mut num: u64, vec: &mut ArrayVec<[u8; 20]>) {
     vec.clear();
-    let mut n = num;
-    while n > 0 {
-        vec.push((n % 10) as u8);
-        n /= 10;
+    while num > 0 {
+        vec.push((num % 10) as u8);
+        num /= 10;
     }
 }
 
