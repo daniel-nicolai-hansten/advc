@@ -20,7 +20,7 @@ log = "0.4.22"
 nohash = "0.2.0"
 nom = "8.0.0"
 num = "0.4.1"
-
+common = { path = "../common" }
 
 rustc-hash = "2.1.0"
 tinyvec = { version = "1.10.0", features = ["latest_stable_rust"] }
