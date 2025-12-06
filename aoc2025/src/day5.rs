@@ -45,11 +45,9 @@ fn part1(input: &(Vec<(usize, usize)>, Vec<usize>)) -> usize {
 fn part2(input: &(Vec<(usize, usize)>, Vec<usize>)) -> usize {
     let mut ranges = input.0.clone();
     let mut merged_ranges: Vec<(usize, usize)> = vec![];
-    loop {
-        let prev_len = merged_ranges.len();
+    while ranges.len() != merged_ranges.len() {
         merged_ranges.clear();
         for (start, end) in ranges.iter() {
-            // check if it overlaps with any existing range
             let mut merged = false;
             for (mstart, mend) in merged_ranges.iter_mut() {
                 if (*start <= *mend + 1 && *end >= *mstart - 1) || (*mstart <= *end + 1 && *mend >= *start - 1) {
@@ -62,9 +60,6 @@ fn part2(input: &(Vec<(usize, usize)>, Vec<usize>)) -> usize {
             if !merged {
                 merged_ranges.push((*start, *end));
             }
-        }
-        if merged_ranges.len() == prev_len {
-            break;
         }
         ranges = merged_ranges.clone();
     }

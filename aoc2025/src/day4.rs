@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use common::pos::Pos;
 #[aoc_generator(day4)]

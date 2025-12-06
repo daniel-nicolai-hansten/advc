@@ -31,18 +31,18 @@ fn part1(input: &[(u64, u64)]) -> u64 {
 #[aoc(day2, part2)]
 fn part2(input: &[(u64, u64)]) -> u64 {
     let mut sum = 0;
-    let mut num_str = ArrayVec::<[u8; 20]>::new();
+    let mut num_arr = ArrayVec::<[u8; 20]>::new();
     for (start, end) in input.iter() {
         for num in *start..=*end {
-            numtovec(num, &mut num_str);
-            if find_repeated(&num_str) {
+            numtovec(num, &mut num_arr);
+            if find_repeated(&num_arr) {
                 sum += num;
             }
         }
     }
     sum
 }
-#[inline]
+
 fn numtovec(mut num: u64, vec: &mut ArrayVec<[u8; 20]>) {
     vec.clear();
     while num > 0 {
@@ -52,10 +52,6 @@ fn numtovec(mut num: u64, vec: &mut ArrayVec<[u8; 20]>) {
 }
 
 fn find_repeated(num: &[u8]) -> bool {
-    let (p1, p2) = num.split_at(num.len() / 2);
-    if p1 == p2 {
-        return true;
-    }
     for i in 2..=num.len() / 2 {
         if num.len() % i != 0 {
             continue;
@@ -67,7 +63,6 @@ fn find_repeated(num: &[u8]) -> bool {
             }
         }
     }
-
     false
 }
 
