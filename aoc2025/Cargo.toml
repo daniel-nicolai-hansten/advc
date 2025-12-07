@@ -24,3 +24,4 @@ common = { path = "../common" }
 
 rustc-hash = "2.1.0"
 tinyvec = { version = "1.10.0", features = ["latest_stable_rust"] }
+cached = "0.56.0"
