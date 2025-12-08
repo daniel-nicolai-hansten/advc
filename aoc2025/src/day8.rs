@@ -1,10 +1,11 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-type Point3D = (u64, u64, u64);
+use rustc_hash::FxHashMap as HashMap;
+type Point3D = (u32, u32, u32);
 #[aoc_generator(day8)]
 fn parse(input: &str) -> Vec<Point3D> {
     input
         .lines()
-        .map(|ln| ln.split(',').map(|n| n.parse().unwrap()).collect::<Vec<u64>>())
+        .map(|ln| ln.split(',').map(|n| n.parse().unwrap()).collect::<Vec<u32>>())
         .map(|v| (v[0], v[1], v[2]))
         .collect()
 }
@@ -18,15 +19,23 @@ const CONNECTED_TARGET: usize = 1000;
 fn part1(input: &[Point3D]) -> usize {
     let mut clusters: Vec<Vec<Point3D>> = Vec::new();
     clusters.extend(input.iter().map(|&p| vec![p]));
+    let mut index: HashMap<Point3D, usize> = input.iter().enumerate().map(|(i, &p)| (p, i)).collect();
     let dists = calc_distances(input);
     for (p1, p2, _dist) in dists.iter().take(CONNECTED_TARGET) {
-        let c1 = clusters.iter().position(|c| c.contains(p1));
-        let c2 = clusters.iter().position(|c| c.contains(p2));
-        match (c1, c2) {
-            (Some(i), Some(j)) if i != j => {
-                let mut c2_points = clusters[j].clone();
-                clusters[i].append(&mut c2_points);
-                clusters.remove(j);
+        match (index.get(p1), index.get(p2)) {
+            (Some(&i), Some(&j)) if i != j => {
+                let mut source = clusters[j].clone();
+                for point in &source {
+                    index.get_mut(point).map(|v| *v = i);
+                }
+                clusters[i].append(&mut source);
+                clusters.swap_remove(j);
+                index.get_mut(p2).map(|v| *v = i);
+                if let Some(moved_data) = clusters.get(j) {
+                    for point in moved_data {
+                        index.get_mut(point).map(|v| *v = j);
+                    }
+                }
             }
             _ => (),
         }
@@ -35,17 +44,17 @@ fn part1(input: &[Point3D]) -> usize {
     clusters.iter().rev().take(3).fold(1, |acc, c| acc * c.len())
 }
 
-fn distance_3d(a: Point3D, b: Point3D) -> f64 {
+fn distance_3d(a: Point3D, b: Point3D) -> f32 {
     let (x, y, z) = a;
     let (x2, y2, z2) = b;
-    let dx = (x as f64 - x2 as f64).abs();
-    let dy = (y as f64 - y2 as f64).abs();
-    let dz = (z as f64 - z2 as f64).abs();
+    let dx = (x as f32 - x2 as f32).abs();
+    let dy = (y as f32 - y2 as f32).abs();
+    let dz = (z as f32 - z2 as f32).abs();
     (dx.powi(2) + dy.powi(2) + dz.powi(2)).sqrt()
 }
 
-fn calc_distances(input: &[Point3D]) -> Vec<(Point3D, Point3D, f64)> {
-    let mut dists = Vec::new();
+fn calc_distances(input: &[Point3D]) -> Vec<(Point3D, Point3D, f32)> {
+    let mut dists = Vec::with_capacity(input.len() * (input.len() - 1) / 2);
     for i in 0..input.len() {
         let point1 = input[i];
         for point2 in &input[i + 1..] {
@@ -53,24 +62,29 @@ fn calc_distances(input: &[Point3D]) -> Vec<(Point3D, Point3D, f64)> {
             dists.push((point1, *point2, dist));
         }
     }
-    dists.sort_by(|a, b| a.2.total_cmp(&b.2));
+    dists.sort_unstable_by(|a, b| a.2.partial_cmp(&b.2).unwrap());
     dists
 }
 
 #[aoc(day8, part2)]
-fn part2(input: &[Point3D]) -> u64 {
+fn part2(input: &[Point3D]) -> u32 {
     let mut clusters: Vec<Vec<Point3D>> = Vec::new();
+    let mut index: HashMap<Point3D, usize> = input.iter().enumerate().map(|(i, &p)| (p, i)).collect();
     clusters.extend(input.iter().map(|&p| vec![p]));
     let dists = calc_distances(input);
     let (mut last_x1, mut last_x2) = (0, 0);
     for (p1, p2, _dist) in &dists {
-        let c1 = clusters.iter().position(|c| c.contains(p1));
-        let c2 = clusters.iter().position(|c| c.contains(p2));
-        match (c1, c2) {
-            (Some(i), Some(j)) if i != j => {
-                let mut c2_points = clusters[j].clone();
-                clusters[i].append(&mut c2_points);
-                clusters.remove(j);
+        match (index.get(p1), index.get(p2)) {
+            (Some(&i), Some(&j)) if i != j => {
+                let mut source = clusters[j].clone();
+                source.iter().for_each(|p| index.get_mut(p).map(|v| *v = i).unwrap()); //Reindex points to move
+                clusters[i].append(&mut source);
+                clusters.swap_remove(j);
+                clusters.get(j).and_then(|mov| {
+                    // reindex the swapped cluster
+                    mov.iter().for_each(|p| index.get_mut(p).map(|v| *v = j).unwrap());
+                    Some(())
+                });
             }
             _ => continue,
         }
