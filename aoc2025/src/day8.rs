@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 use aoc_runner_derive::{aoc, aoc_generator};
 use rustc_hash::FxHashMap as HashMap;
 type Point3D = (u32, u32, u32);
@@ -44,16 +46,16 @@ fn part1(input: &[Point3D]) -> usize {
     clusters.iter().rev().take(3).fold(1, |acc, c| acc * c.len())
 }
 
-fn distance_3d(a: Point3D, b: Point3D) -> f32 {
+fn distance_3d(a: Point3D, b: Point3D) -> i64 {
     let (x, y, z) = a;
     let (x2, y2, z2) = b;
-    let dx = (x as f32 - x2 as f32).abs();
-    let dy = (y as f32 - y2 as f32).abs();
-    let dz = (z as f32 - z2 as f32).abs();
-    (dx.powi(2) + dy.powi(2) + dz.powi(2)).sqrt()
+    let dx = (x as i64 - x2 as i64).abs();
+    let dy = (y as i64 - y2 as i64).abs();
+    let dz = (z as i64 - z2 as i64).abs();
+    dx.pow(2) + dy.pow(2) + dz.pow(2)
 }
 
-fn calc_distances(input: &[Point3D]) -> Vec<(Point3D, Point3D, f32)> {
+fn calc_distances(input: &[Point3D]) -> Vec<(Point3D, Point3D, i64)> {
     let mut dists = Vec::with_capacity(input.len() * (input.len() - 1) / 2);
     for i in 0..input.len() {
         let point1 = input[i];
@@ -62,7 +64,7 @@ fn calc_distances(input: &[Point3D]) -> Vec<(Point3D, Point3D, f32)> {
             dists.push((point1, *point2, dist));
         }
     }
-    dists.sort_unstable_by(|a, b| a.2.partial_cmp(&b.2).unwrap());
+    dists.sort_unstable_by_key(|(_p1, _p2, dist)| *dist);
     dists
 }
 
@@ -76,16 +78,17 @@ fn part2(input: &[Point3D]) -> u32 {
     for (p1, p2, _dist) in &dists {
         match (index.get(p1), index.get(p2)) {
             (Some(&i), Some(&j)) if i != j => {
-                let mut source = clusters[j].clone();
-                source.iter().for_each(|p| index.get_mut(p).map(|v| *v = i).unwrap()); //Reindex points to move
-                clusters[i].append(&mut source);
-                clusters.swap_remove(j);
-                clusters.get(j).and_then(|mov| {
+                let (source_idx, target_idx) = (max(i, j), min(i, j));
+                let mut source = clusters.swap_remove(source_idx);
+                source.iter().for_each(|p| index.get_mut(p).map(|v| *v = target_idx).unwrap()); //Reindex points to move
+                clusters[target_idx].append(&mut source);
+                clusters.get(source_idx).and_then(|mov| {
                     // reindex the swapped cluster
-                    mov.iter().for_each(|p| index.get_mut(p).map(|v| *v = j).unwrap());
+                    mov.iter().for_each(|p| index.get_mut(p).map(|v| *v = source_idx).unwrap());
                     Some(())
                 });
             }
+            _ if clusters.len() == 1 => break,
             _ => continue,
         }
         (last_x1, last_x2) = (p1.0, p2.0);
