@@ -1,7 +1,6 @@
-use std::cmp::{max, min};
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use rustc_hash::FxHashMap as HashMap;
+use std::cmp::{max, min};
 type Point3D = (u32, u32, u32);
 #[aoc_generator(day8)]
 fn parse(input: &str) -> Vec<Point3D> {
