@@ -18,13 +18,12 @@ fn part1(input: &Vec<Vec<char>>) -> u64 {
         }
         match input[y][x] {
             '^' => {
-                let (n1, n2) = ((x + 1, y + 1), (x.wrapping_sub(1), y + 1));
+                let n = [(x + 1, y + 1), (x.wrapping_sub(1), y + 1)];
                 splits += 1;
-                if beams.insert(n1) {
-                    wq.push(n1);
-                }
-                if beams.insert(n2) {
-                    wq.push(n2);
+                for n1 in n {
+                    if beams.insert(n1) {
+                        wq.push(n1);
+                    }
                 }
             }
             '.' | 'S' => {
@@ -46,7 +45,7 @@ fn part2(input: &Vec<Vec<char>>) -> u64 {
     splits
 }
 
-#[cached(key = "(usize, usize)", convert = r#"{ (pos.0, pos.1) }"#)]
+#[cached(key = "(usize, usize)", convert = r#"{pos }"#)]
 fn find_path(pos: (usize, usize), map: &Vec<Vec<char>>) -> u64 {
     let (x, y) = pos;
     if y >= map.len() || x >= map[0].len() {

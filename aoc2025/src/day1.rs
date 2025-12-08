@@ -1,71 +1,56 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Direction {
+#[aoc_generator(day1)]
+fn parse(input: &str) -> Vec<(Dir, i64)> {
+    input
+        .lines()
+        .map(|line| {
+            let (d, n) = line.split_at(1);
+            let dir = match d {
+                "L" => Dir::Left,
+                "R" => Dir::Right,
+                _ => panic!("Invalid direction"),
+            };
+            let num = n.parse::<i64>().unwrap();
+            (dir, num)
+        })
+        .collect()
+}
+#[derive(Debug, Clone, Copy)]
+enum Dir {
     Left,
     Right,
 }
 
-#[aoc_generator(day1)]
-fn parse(input: &str) -> Vec<(Direction, u32)> {
-    let mut result = Vec::new();
-    for line in input.lines() {
-        let line = line.trim();
-        let dir = &line[0..1];
-        let dist: u32 = line[1..].parse().unwrap();
-        let direction = match dir {
-            "L" => Direction::Left,
-            "R" => Direction::Right,
-            _ => panic!("Invalid direction"),
-        };
-        result.push((direction, dist));
-    }
-    result
-}
-
 #[aoc(day1, part1)]
-fn part1(input: &[(Direction, u32)]) -> usize {
-    let mut pos: u32 = 50;
-    let mut visited = vec![pos];
-    for &(dir, dist) in input {
-        // println!("At pos {} {:?} {}", pos, dir, dist);
-        let dist = dist % 100;
-        pos = match dir {
-            Direction::Left => pos.checked_sub(dist).unwrap_or({
-                let wrap = dist.checked_sub(pos).unwrap_or(0);
-                100 - wrap
-            }),
-            Direction::Right => pos + dist,
-        };
-        pos = pos % 100;
-        visited.push(pos);
-    }
-    visited.iter().filter(|&&p| p == 0).count()
+fn part1(input: &Vec<(Dir, i64)>) -> usize {
+    input
+        .iter()
+        .scan(50, |acc, (dir, n)| {
+            match dir {
+                Dir::Left => *acc -= n,
+                Dir::Right => *acc += n,
+            }
+            Some(acc.rem_euclid(100))
+        })
+        .filter(|&n| n == 0)
+        .count()
 }
 
 #[aoc(day1, part2)]
-fn part2(input: &[(Direction, u32)]) -> usize {
-    let mut pos: i32 = 50;
-    let mut zeros = 0;
-    for &(dir, dist) in input {
-        for _ in 0..dist {
-            match dir {
-                Direction::Left => pos -= 1,
-                Direction::Right => pos += 1,
+fn part2(input: &Vec<(Dir, i64)>) -> i64 {
+    input
+        .iter()
+        .scan(50, |acc, (dir, n)| {
+            let pos = match dir {
+                Dir::Left => *acc - n,
+                Dir::Right => *acc + n,
             };
-            if pos % 100 == 0 {
-                zeros += 1;
-            }
-            if pos == 0 {
-                pos = 100;
-            }
-            if pos == 101 {
-                pos = 1;
-            }
-        }
-        println!("Moved {:?} by {}, new pos {}", dir, dist, pos);
-    }
-    zeros
+            let dist = pos.abs() / 100 + (if pos < 0 { 1 } else { 0 });
+            println!("Moving from {} to {} crosses {} zeros", *acc, pos, dist);
+            *acc = pos.rem_euclid(100);
+            Some(dist)
+        })
+        .sum()
 }
 
 #[cfg(test)]
@@ -80,8 +65,7 @@ L55
 L1
 L99
 R14
-L82
-";
+L82";
     #[test]
     fn part1_example() {
         assert_eq!(part1(&parse(TESTINPUT)), 3);
