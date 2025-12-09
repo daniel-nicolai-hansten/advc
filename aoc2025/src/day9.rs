@@ -12,9 +12,9 @@ fn parse(input: &str) -> Vec<(u64, u64)> {
     input
         .lines()
         .map(|ln| {
-            let mut parts = ln.split(',');
-            let x = parts.next().unwrap().trim().parse().unwrap();
-            let y = parts.next().unwrap().trim().parse().unwrap();
+            let (p1, p2) = ln.split_once(',').unwrap();
+            let x = p1.trim().parse::<u64>().unwrap();
+            let y = p2.trim().parse::<u64>().unwrap();
             (x, y)
         })
         .collect()
@@ -22,22 +22,12 @@ fn parse(input: &str) -> Vec<(u64, u64)> {
 
 #[aoc(day9, part1)]
 fn part1(input: &[(u64, u64)]) -> u64 {
-    let mut max_area = 0;
-    for i in 0..input.len() {
-        let (p1_x, p1_y) = input[i];
-        for (p2_x, p2_y) in &input[i + 1..] {
-            // calculate area between p1 and p2
-            let dist_x = p1_x.abs_diff(*p2_x) + 1;
-            let dist_y = p1_y.abs_diff(*p2_y) + 1;
-            let area = dist_x * dist_y;
-            // println!(
-            //     "Point1: ({},{}) Point2: ({},{}) Dist: ({},{}) => Area: {}",
-            //     p1_x, p1_y, p2_x, p2_y, dist_x, dist_y, area
-            // );
-            max_area = max(area, max_area);
-        }
-    }
-    max_area
+    input.iter().tuple_combinations().map(|(p1, p2)| calc_area(p1, p2)).max().unwrap()
+}
+fn calc_area(p1: &(u64, u64), p2: &(u64, u64)) -> u64 {
+    let dist_x = p1.0.abs_diff(p2.0) + 1;
+    let dist_y = p1.1.abs_diff(p2.1) + 1;
+    dist_x * dist_y
 }
 
 #[aoc(day9, part2)]
@@ -76,54 +66,50 @@ fn part2(input: &[(u64, u64)]) -> u64 {
     let mut max_area = 0;
 
     // Check all rectangle pairs
-    for i in 0..input.len() {
-        for j in i + 1..input.len() {
-            let (x1, y1) = input[i];
-            let (x2, y2) = input[j];
+    for (p1, p2) in input.iter().tuple_combinations() {
+        let (x1, y1) = *p1;
+        let (x2, y2) = *p2;
+        let minx = x1.min(x2);
+        let maxx = x1.max(x2);
+        let miny = y1.min(y2);
+        let maxy = y1.max(y2);
 
-            let minx = x1.min(x2);
-            let maxx = x1.max(x2);
-            let miny = y1.min(y2);
-            let maxy = y1.max(y2);
+        let mut works = true;
 
-            let mut works = true;
+        // Check horizontal segments
+        for &((hx, hy0), (_, hy1)) in &h_segs {
+            let hy_min = hy0.min(hy1);
+            let hy_max = hy0.max(hy1);
 
-            // Check horizontal segments
-            for &((hx, hy0), (_, hy1)) in &h_segs {
-                let hy_min = hy0.min(hy1);
-                let hy_max = hy0.max(hy1);
-
-                if hx > minx && hx < maxx {
-                    let ok = hy_max <= miny || hy_min >= maxy;
-                    if !ok {
-                        works = false;
-                        break;
-                    }
+            if hx > minx && hx < maxx {
+                let ok = hy_max <= miny || hy_min >= maxy;
+                if !ok {
+                    works = false;
+                    break;
                 }
             }
+        }
 
-            if !works {
-                continue;
-            }
+        if !works {
+            continue;
+        }
 
-            // Check vertical segments
-            for &((vx0, vy), (vx1, _)) in &v_segs {
-                let vx_min = vx0.min(vx1);
-                let vx_max = vx0.max(vx1);
+        // Check vertical segments
+        for &((vx0, vy), (vx1, _)) in &v_segs {
+            let vx_min = vx0.min(vx1);
+            let vx_max = vx0.max(vx1);
 
-                if vy > miny && vy < maxy {
-                    let ok = vx_max <= minx || vx_min >= maxx;
-                    if !ok {
-                        works = false;
-                        break;
-                    }
+            if vy > miny && vy < maxy {
+                let ok = vx_max <= minx || vx_min >= maxx;
+                if !ok {
+                    works = false;
+                    break;
                 }
             }
+        }
 
-            if works {
-                let area = (x1.abs_diff(x2) + 1) * (y1.abs_diff(y2) + 1);
-                max_area = max_area.max(area);
-            }
+        if works {
+            max_area = max_area.max(calc_area(p1, p2));
         }
     }
 
