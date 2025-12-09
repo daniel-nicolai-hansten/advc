@@ -26,3 +26,4 @@ rustc-hash = "2.1.0"
 tinyvec = { version = "1.10.0", features = ["latest_stable_rust"] }
 cached = "0.56.0"
 petgraph = "0.8.3"
+indicatif = "0.18.3"
