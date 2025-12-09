@@ -4,8 +4,9 @@ use itertools::Itertools;
 use rustc_hash::FxHashSet as HashSet;
 use std::{
     cmp::{max, min},
-    collections::VecDeque,
+    collections::{HashMap, VecDeque},
 };
+
 #[aoc_generator(day9)]
 fn parse(input: &str) -> Vec<(u64, u64)> {
     input
@@ -41,154 +42,92 @@ fn part1(input: &[(u64, u64)]) -> u64 {
 
 #[aoc(day9, part2)]
 fn part2(input: &[(u64, u64)]) -> u64 {
+    // Group points by coordinates
+    let mut by_x: HashMap<u64, Vec<u64>> = HashMap::new();
+    let mut by_y: HashMap<u64, Vec<u64>> = HashMap::new();
+
+    for &(x, y) in input {
+        by_x.entry(x).or_default().push(y);
+        by_y.entry(y).or_default().push(x);
+    }
+
+    // Create horizontal and vertical segments
+    let mut h_segs = Vec::new();
+    let mut v_segs = Vec::new();
+
+    for (x, mut ys) in by_x {
+        ys.sort();
+        for i in (0..ys.len()).step_by(2) {
+            if i + 1 < ys.len() {
+                h_segs.push(((x, ys[i]), (x, ys[i + 1])));
+            }
+        }
+    }
+
+    for (y, mut xs) in by_y {
+        xs.sort();
+        for i in (0..xs.len()).step_by(2) {
+            if i + 1 < xs.len() {
+                v_segs.push(((xs[i], y), (xs[i + 1], y)));
+            }
+        }
+    }
+
     let mut max_area = 0;
-    let mut map = input.iter().cloned().collect::<HashSet<_>>();
 
-    let total_combinations = input.len() * (input.len() - 1) / 2;
-    let pb = ProgressBar::new(total_combinations as u64);
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos}/{len} ({percent}%) {msg}")
-            .unwrap()
-            .progress_chars("##-"),
-    );
-    for ((x1, y1), (x2, y2)) in input.iter().tuple_windows() {
-        let minx = min(x1, x2);
-        let maxx = max(x1, x2);
-        let miny = min(y1, y2);
-        let maxy = max(y1, y2);
-
-        for x in *minx..*maxx {
-            map.insert((x, *miny));
-            // println!("Inserting ({},{})", x, miny);
-        }
-        for y in *miny..*maxy {
-            map.insert((*minx, y));
-            // println!("Inserting ({},{})", minx, y);
-        }
-    }
-    if let Some(((x1, y1), (x2, y2))) = input.first().zip(input.last()) {
-        let minx = min(x1, x2);
-        let maxx = max(x1, x2);
-        let miny = min(y1, y2);
-        let maxy = max(y1, y2);
-        for x in *minx..*maxx {
-            map.insert((x, *miny));
-            // println!("Inserting ({},{})", x, miny);
-        }
-        for y in *miny..*maxy {
-            map.insert((*minx, y));
-            // println!("Inserting ({},{})", minx, y);
-        }
-    }
-    println!("Boundary map size: {}", map.len());
-
-    // Find bounding box
-    let min_x = input.iter().map(|(x, _)| *x).min().unwrap();
-    let max_x = input.iter().map(|(x, _)| *x).max().unwrap();
-    let min_y = input.iter().map(|(_, y)| *y).min().unwrap();
-    let max_y = input.iter().map(|(_, y)| *y).max().unwrap();
-
-    // Find a point inside using ray casting or pick's theorem
-    // let inside_point = find_inside_point(&map, min_x, max_x, min_y, max_y);
-    // if let Some((ix, iy)) = inside_point {
-    //     println!("Found inside point: ({},{})", ix, iy);
-    //     flood_fill(&mut map, (ix, iy), min_x, max_x, min_y, max_y);
-    //     println!("After flood fill, map size: {}", map.len());
-    // }
-
+    // Check all rectangle pairs
     for i in 0..input.len() {
-        let (x1, y1) = input[i];
-        'outer: for (x2, y2) in &input[i + 1..] {
-            pb.inc(1);
-            pb.set_message(format!("Processing ({},{}) vs ({},{})", x1, y1, x2, y2));
+        for j in i + 1..input.len() {
+            let (x1, y1) = input[i];
+            let (x2, y2) = input[j];
 
-            let minx = min(x1, *x2);
-            let maxx = max(x1, *x2);
-            let miny = min(y1, *y2);
-            let maxy = max(y1, *y2);
-            // check that all points inside the rectangle are in the map
-            for x in minx..maxx {
-                for y in miny..maxy {
-                    if !map.contains(&(x, y)) && !is_inside_polygon_shoelace(x, y, &input) {
-                        continue 'outer;
+            let minx = x1.min(x2);
+            let maxx = x1.max(x2);
+            let miny = y1.min(y2);
+            let maxy = y1.max(y2);
+
+            let mut works = true;
+
+            // Check horizontal segments
+            for &((hx, hy0), (_, hy1)) in &h_segs {
+                let hy_min = hy0.min(hy1);
+                let hy_max = hy0.max(hy1);
+
+                if hx > minx && hx < maxx {
+                    let ok = hy_max <= miny || hy_min >= maxy;
+                    if !ok {
+                        works = false;
+                        break;
                     }
-                    map.insert((x, y));
                 }
             }
-            let dist_x = x1.abs_diff(*x2) + 1;
-            let dist_y = y1.abs_diff(*y2) + 1;
-            let area = dist_x * dist_y;
-            max_area = max(area, max_area);
+
+            if !works {
+                continue;
+            }
+
+            // Check vertical segments
+            for &((vx0, vy), (vx1, _)) in &v_segs {
+                let vx_min = vx0.min(vx1);
+                let vx_max = vx0.max(vx1);
+
+                if vy > miny && vy < maxy {
+                    let ok = vx_max <= minx || vx_min >= maxx;
+                    if !ok {
+                        works = false;
+                        break;
+                    }
+                }
+            }
+
+            if works {
+                let area = (x1.abs_diff(x2) + 1) * (y1.abs_diff(y2) + 1);
+                max_area = max_area.max(area);
+            }
         }
     }
+
     max_area
-}
-
-fn find_inside_point(boundary: &HashSet<(u64, u64)>, min_x: u64, max_x: u64, min_y: u64, max_y: u64) -> Option<(u64, u64)> {
-    // Try points inside the bounding box
-    for y in min_y + 1..max_y {
-        for x in min_x + 1..max_x {
-            if !boundary.contains(&(x, y)) && is_inside_polygon(x, y, boundary, max_x) {
-                return Some((x, y));
-            }
-        }
-    }
-    None
-}
-fn is_inside_polygon(x: u64, y: u64, boundary: &HashSet<(u64, u64)>, max_x: u64) -> bool {
-    // Ray casting algorithm - count intersections to the right
-    let mut intersections = 0;
-    for test_x in x + 1..=max_x {
-        if boundary.contains(&(test_x, y)) {
-            intersections += 1;
-        }
-    }
-    intersections % 2 == 1
-}
-fn is_inside_polygon_shoelace(px: u64, py: u64, polygon: &[(u64, u64)]) -> bool {
-    let n = polygon.len();
-    let mut inside = false;
-
-    let mut j = n - 1;
-    for i in 0..n {
-        let (xi, yi) = polygon[i];
-        let (xj, yj) = polygon[j];
-
-        if ((yi > py) != (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi) {
-            inside = !inside;
-        }
-        j = i;
-    }
-    inside
-}
-
-fn flood_fill(boundary: &mut HashSet<(u64, u64)>, start: (u64, u64), min_x: u64, max_x: u64, min_y: u64, max_y: u64) {
-    let mut queue = VecDeque::new();
-    queue.push_back(start);
-    boundary.insert(start);
-
-    let directions = [(0, 1), (0, -1), (1, 0), (-1, 0)];
-
-    while let Some((x, y)) = queue.pop_front() {
-        for (dx, dy) in &directions {
-            let new_x = (x as i64 + dx) as u64;
-            let new_y = (y as i64 + dy) as u64;
-
-            // Check bounds
-            if new_x < min_x || new_x > max_x || new_y < min_y || new_y > max_y {
-                continue;
-            }
-
-            // Skip if it's a boundary or already visited
-            if boundary.contains(&(new_x, new_y)) {
-                continue;
-            }
-
-            boundary.insert((new_x, new_y));
-            queue.push_back((new_x, new_y));
-        }
-    }
 }
 
 #[cfg(test)]
