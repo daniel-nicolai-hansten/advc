@@ -1,9 +1,10 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use good_lp::*;
+use good_lp::{Expression, microlp, variable, variables};
 use nom::Parser;
 use nom::character::complete::{char, one_of, space0};
 use nom::multi::{many1, separated_list1};
 use nom::{IResult, bytes::complete::tag, sequence::delimited};
-
 use std::collections::{HashSet, VecDeque};
 use std::vec;
 #[aoc_generator(day10)]
@@ -56,13 +57,12 @@ fn part1(input: &[(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)]) -> u64 {
 
 #[aoc(day10, part2)]
 fn part2(input: &[(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)]) -> u64 {
-    use good_lp::*;
     let mut sum = 0;
     for (_lights, switches, jolts) in input {
         let mut vars = variables!();
         let press_vars = (0..switches.len()).map(|_| vars.add(variable().min(0).integer())).collect::<Vec<_>>();
 
-        let mut problem = highs(vars.minimise(press_vars.iter().sum::<Expression>()));
+        let mut problem = microlp(vars.minimise(press_vars.iter().sum::<Expression>()));
         let mut exprs = vec![0.into_expression(); jolts.len()];
         for (i, x) in switches.iter().enumerate() {
             for &x in x {
@@ -77,6 +77,13 @@ fn part2(input: &[(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)]) -> u64 {
     }
     sum
 }
+
+// fn part2_astar(input: &[(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)]) -> u64 {
+//     let mut total = 0;
+//     for (_lights, switches, jolts) in input {
+
+//     total
+// }
 
 #[cfg(test)]
 mod tests {

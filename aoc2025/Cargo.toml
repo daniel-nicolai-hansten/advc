@@ -27,4 +27,4 @@ tinyvec = { version = "1.10.0", features = ["latest_stable_rust"] }
 cached = "0.56.0"
 petgraph = "0.8.3"
 indicatif = "0.18.3"
-good_lp = { version = "1.14.2", features = ["highs"] , default-features = false }
+good_lp = { version = "1.14.2", features = ["microlp"] , default-features = false }
