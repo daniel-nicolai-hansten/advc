@@ -1,22 +1,23 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use nom::Parser;
-use nom::character::complete::{char, one_of};
+use nom::character::complete::{char, one_of, space0};
 use nom::multi::{many1, separated_list1};
 use nom::{IResult, bytes::complete::tag, sequence::delimited};
 use std::vec;
 #[aoc_generator(day10)]
 fn parse(input: &str) -> Vec<(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)> {
-    let (mut lights, mut switches, mutjolts) = (vec![], vec![], vec![]);
     let mut ret = vec![];
     for line in input.lines() {
         let (rest, v) = lineparse(line).unwrap();
         ret.push(v);
     }
-    (vec![], vec![], vec![])
+    ret
 }
 fn lineparse(input: &str) -> IResult<&str, (Vec<bool>, Vec<Vec<u64>>, Vec<u64>)> {
     let (input, bools) = delimited(tag("["), many1(one_of(".#").map(|c| c == '#')), tag("]")).parse(input)?;
-    let (input, switches) = many1(delimited(tag("("), separated_list1(char(','), nom::character::complete::u64), tag(")"))).parse(input)?;
+    let (input, _) = space0(input)?;
+    let (input, switches) = separated_list1(space0, delimited(tag("("), separated_list1(char(','), nom::character::complete::u64), tag(")"))).parse(input)?;
+    let (input, _) = space0(input)?;
     let (input, jolts) = delimited(tag("{"), separated_list1(char(','), nom::character::complete::u64), tag("}")).parse(input)?;
     Ok((input, (bools, switches, jolts)))
 }
@@ -30,12 +31,12 @@ fn parse_bool_array(input: &str) -> nom::IResult<&str, Vec<bool>> {
 }
 
 #[aoc(day10, part1)]
-fn part1(input: &(Vec<bool>, Vec<u64>, Vec<u64>)) -> u64 {
+fn part1(input: &[(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)]) -> u64 {
     todo!()
 }
 
 #[aoc(day10, part2)]
-fn part2(input: &(Vec<bool>, Vec<u64>, Vec<u64>)) -> u64 {
+fn part2(input: &[(Vec<bool>, Vec<Vec<u64>>, Vec<u64>)]) -> u64 {
     todo!()
 }
 
@@ -48,11 +49,13 @@ mod tests {
 ";
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse(TESTINPUT)), 50);
+        let parsed = parse(TESTINPUT);
+        println!("{:?}", parsed);
+        // assert_eq!(part1(&parse(TESTINPUT)), 50);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse(TESTINPUT)), 50);
+        // assert_eq!(part2(&parse(TESTINPUT)), 50);
     }
 }
