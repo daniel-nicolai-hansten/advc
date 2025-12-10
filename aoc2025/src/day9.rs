@@ -1,11 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use indicatif::{ProgressBar, ProgressStyle};
 use itertools::Itertools;
-use rustc_hash::FxHashSet as HashSet;
-use std::{
-    cmp::{max, min},
-    collections::{HashMap, VecDeque},
-};
 
 #[aoc_generator(day9)]
 fn parse(input: &str) -> Vec<(u64, u64)> {
@@ -32,85 +26,54 @@ fn calc_area(p1: &(u64, u64), p2: &(u64, u64)) -> u64 {
 
 #[aoc(day9, part2)]
 fn part2(input: &[(u64, u64)]) -> u64 {
-    // Group points by coordinates
-    let mut by_x: HashMap<u64, Vec<u64>> = HashMap::new();
-    let mut by_y: HashMap<u64, Vec<u64>> = HashMap::new();
-
-    for &(x, y) in input {
-        by_x.entry(x).or_default().push(y);
-        by_y.entry(y).or_default().push(x);
-    }
-
-    // Create horizontal and vertical segments
+    let mut max_area = 0;
+    // Create segments by finding pairs of points on same x or y coordinate
     let mut h_segs = Vec::new();
     let mut v_segs = Vec::new();
 
-    for (x, mut ys) in by_x {
-        ys.sort();
-        for i in (0..ys.len()).step_by(2) {
-            if i + 1 < ys.len() {
-                h_segs.push(((x, ys[i]), (x, ys[i + 1])));
-            }
-        }
-    }
-
-    for (y, mut xs) in by_y {
-        xs.sort();
-        for i in (0..xs.len()).step_by(2) {
-            if i + 1 < xs.len() {
-                v_segs.push(((xs[i], y), (xs[i + 1], y)));
-            }
-        }
-    }
-
-    let mut max_area = 0;
-
-    // Check all rectangle pairs
-    for (p1, p2) in input.iter().tuple_combinations() {
+    // Find horizontal segments (same x coordinate)
+    for (p1, p2) in input.iter().circular_tuple_windows() {
         let (x1, y1) = *p1;
         let (x2, y2) = *p2;
-        let minx = x1.min(x2);
-        let maxx = x1.max(x2);
-        let miny = y1.min(y2);
-        let maxy = y1.max(y2);
 
-        let mut works = true;
+        if x1 == x2 {
+            // Horizontal segment
+            h_segs.push(((x1, y1.min(y2)), (x1, y1.max(y2))));
+        }
+        if y1 == y2 {
+            // Vertical segment
+            v_segs.push(((x1.min(x2), y1), (x1.max(x2), y1)));
+        }
+    }
+
+    // Check all rectangle pairs
+    'outer: for (p1, p2) in input.iter().tuple_combinations() {
+        let potential_area = calc_area(p1, p2);
+        if potential_area <= max_area {
+            continue;
+        }
+        let (x1, y1) = *p1;
+        let (x2, y2) = *p2;
+        let (minx, maxx) = (x1.min(x2), x1.max(x2));
+        let (miny, maxy) = (y1.min(y2), y1.max(y2));
 
         // Check horizontal segments
         for &((hx, hy0), (_, hy1)) in &h_segs {
-            let hy_min = hy0.min(hy1);
-            let hy_max = hy0.max(hy1);
-
-            if hx > minx && hx < maxx {
-                let ok = hy_max <= miny || hy_min >= maxy;
-                if !ok {
-                    works = false;
-                    break;
-                }
+            let (hy_min, hy_max) = (hy0.min(hy1), hy0.max(hy1));
+            if hx > minx && hx < maxx && !(hy_max <= miny || hy_min >= maxy) {
+                continue 'outer;
             }
-        }
-
-        if !works {
-            continue;
         }
 
         // Check vertical segments
         for &((vx0, vy), (vx1, _)) in &v_segs {
-            let vx_min = vx0.min(vx1);
-            let vx_max = vx0.max(vx1);
-
-            if vy > miny && vy < maxy {
-                let ok = vx_max <= minx || vx_min >= maxx;
-                if !ok {
-                    works = false;
-                    break;
-                }
+            let (vx_min, vx_max) = (vx0.min(vx1), vx0.max(vx1));
+            if vy > miny && vy < maxy && !(vx_max <= minx || vx_min >= maxx) {
+                continue 'outer;
             }
         }
 
-        if works {
-            max_area = max_area.max(calc_area(p1, p2));
-        }
+        max_area = max_area.max(calc_area(p1, p2));
     }
 
     max_area
