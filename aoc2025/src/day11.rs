@@ -1,0 +1,124 @@
+use aoc_runner_derive::{aoc, aoc_generator};
+use cached::proc_macro::cached;
+use nom::Parser;
+use nom::multi::separated_list1;
+use nom::{IResult, bytes::complete::tag};
+use petgraph::algo::all_simple_paths;
+use petgraph::dot::{Config, Dot};
+use petgraph::graph::NodeIndex;
+use petgraph::{Directed, Graph};
+use std::collections::HashMap;
+use std::fs::File;
+use std::hash::RandomState;
+use std::io::Write;
+
+#[aoc_generator(day11)]
+fn parse(input: &str) -> Vec<(String, Vec<String>)> {
+    let mut result = Vec::new();
+    for line in input.lines() {
+        if let Ok((_, parsed)) = lineparse(line) {
+            result.push(parsed);
+        }
+    }
+    result
+}
+fn lineparse(input: &str) -> IResult<&str, (String, Vec<String>)> {
+    let (input, key) = nom::character::complete::alpha1(input)?;
+    let (input, _) = tag(": ")(input)?;
+    let (input, values) = separated_list1(nom::character::complete::space1, nom::character::complete::alpha1).parse(input)?;
+    Ok((input, (key.to_string(), values.into_iter().map(|s| s.to_string()).collect())))
+}
+
+#[allow(dead_code)]
+fn write_dot_file(graph: &Graph<&str, (), Directed>, filename: &str) {
+    let dot_output = format!("{:?}", Dot::with_config(graph, &[Config::EdgeNoLabel]));
+    if let Ok(mut file) = File::create(filename) {
+        let _ = file.write_all(dot_output.as_bytes());
+        println!("Graph written to {}", filename);
+    }
+}
+
+#[aoc(day11, part1)]
+fn part1(input: &[(String, Vec<String>)]) -> usize {
+    let mut nodes = HashMap::new();
+    let mut graph = Graph::<&str, (), Directed>::new();
+    for (source, targets) in input {
+        let source_idx = *nodes.entry(source.as_str()).or_insert_with(|| graph.add_node(source.as_str()));
+        for target in targets {
+            let target_idx = *nodes.entry(target.as_str()).or_insert_with(|| graph.add_node(target.as_str()));
+            graph.add_edge(source_idx, target_idx, ());
+        }
+    }
+    let start = nodes.get("you").unwrap();
+    let end = nodes.get("out").unwrap();
+    all_simple_paths::<Vec<_>, _, RandomState>(&graph, *start, *end, 0, None).count()
+}
+
+#[aoc(day11, part2)]
+fn part2(input: &[(String, Vec<String>)]) -> usize {
+    let mut nodes = HashMap::new();
+    let mut graph = Graph::<&str, (), Directed>::new();
+    for (source, targets) in input {
+        let source_idx = *nodes.entry(source.as_str()).or_insert_with(|| graph.add_node(source.as_str()));
+        for target in targets {
+            let target_idx = *nodes.entry(target.as_str()).or_insert_with(|| graph.add_node(target.as_str()));
+            graph.add_edge(source_idx, target_idx, ());
+        }
+    }
+
+    // write_dot_file(&graph, "graph_part2.dot");
+
+    // svr -> fft -> dac -> out
+    let pathcount_fft = paths_between(&graph, *nodes.get("svr").unwrap(), *nodes.get("fft").unwrap());
+    let pathcount_dac = paths_between(&graph, *nodes.get("fft").unwrap(), *nodes.get("dac").unwrap());
+    let pathcount_out = paths_between(&graph, *nodes.get("dac").unwrap(), *nodes.get("out").unwrap());
+    pathcount_fft * pathcount_dac * pathcount_out
+}
+#[cached(key = "String", convert = r#"{format!("{}-{}", start.index(), end.index())}"#)]
+fn paths_between(graph: &Graph<&str, (), Directed>, start: NodeIndex, end: NodeIndex) -> usize {
+    graph
+        .neighbors(start)
+        .map(|neighbor| match neighbor == end {
+            true => 1,
+            false => paths_between(graph, neighbor, end),
+        })
+        .sum()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    const TESTINPUT: &str = "aaa: you hhh
+you: bbb ccc
+bbb: ddd eee
+ccc: ddd eee fff
+ddd: ggg
+eee: out
+fff: out
+ggg: out
+hhh: ccc fff iii
+iii: out
+";
+    const TESTINPUT2: &str = "svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out";
+    #[test]
+    fn part1_example() {
+        assert_eq!(part1(&parse(TESTINPUT)), 5);
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(&parse(TESTINPUT2)), 2);
+    }
+}
