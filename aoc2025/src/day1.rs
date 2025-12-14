@@ -41,14 +41,24 @@ fn part2(input: &Vec<(Dir, i64)>) -> i64 {
     input
         .iter()
         .scan(50, |acc, (dir, n)| {
-            let pos = match dir {
-                Dir::Left => *acc - n,
-                Dir::Right => *acc + n,
+            let (pos, dist) = match dir {
+                Dir::Left if *acc == 0 => {
+                    let pos = *acc - n;
+                    (pos, pos.div_euclid(100).abs() - 1)
+                }
+                Dir::Left => (*acc - n, (*acc - n - 1).div_euclid(100).abs()),
+                Dir::Right => (*acc + n, (*acc + n) / 100),
             };
-            let dist = pos.abs() / 100 + (if pos < 0 { 1 } else { 0 });
-            println!("Moving from {} to {} crosses {} zeros", *acc, pos, dist);
+            //            let dist = pos.div_euclid(100).abs();
+            println!("Moving {} {:?} from {} to {} crosses {} zeros", n, dir, *acc, pos, dist);
             *acc = pos.rem_euclid(100);
-            Some(dist)
+            let extra = match pos == 0 {
+                true => 1,
+                false => 0,
+            };
+
+            println!("res {}", dist + extra);
+            Some(dist + extra)
         })
         .sum()
 }

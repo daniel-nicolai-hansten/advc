@@ -43,10 +43,12 @@ fn part1(input: &(Vec<(usize, usize)>, Vec<usize>)) -> usize {
 
 #[aoc(day5, part2)]
 fn part2(input: &(Vec<(usize, usize)>, Vec<usize>)) -> usize {
-    let mut ranges = input.0.clone();
-    let mut merged_ranges: Vec<(usize, usize)> = vec![];
+    let mut merged_ranges = input.0.clone();
+    let mut ranges: Vec<(usize, usize)> = vec![];
     while ranges.len() != merged_ranges.len() {
+        ranges = merged_ranges.clone();
         merged_ranges.clear();
+
         for (start, end) in ranges.iter() {
             let mut merged = false;
             for (mstart, mend) in merged_ranges.iter_mut() {
@@ -61,8 +63,8 @@ fn part2(input: &(Vec<(usize, usize)>, Vec<usize>)) -> usize {
                 merged_ranges.push((*start, *end));
             }
         }
-        ranges = merged_ranges.clone();
     }
+    println!("{:?}", merged_ranges);
     merged_ranges.iter().fold(0, |acc, (start, end)| acc + end - start + 1)
 }
 

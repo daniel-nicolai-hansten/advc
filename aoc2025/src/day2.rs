@@ -52,7 +52,7 @@ fn numtovec(mut num: u64, vec: &mut ArrayVec<[u8; 20]>) {
 }
 
 fn find_repeated(num: &[u8]) -> bool {
-    for i in 2..=num.len() / 2 {
+    for i in 1..=num.len() / 2 {
         if num.len() % i != 0 {
             continue;
         }
