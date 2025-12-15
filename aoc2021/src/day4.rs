@@ -1,8 +1,10 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::{bytes::complete::tag, error::Error, multi::separated_list0};
+use nom::{bytes::complete::tag, error::Error, multi::separated_list0, Parser};
 #[aoc_generator(day4)]
 fn parse(input: &str) -> (Vec<u32>, Vec<BingoBoard>) {
-    let (o, moves) = separated_list0(tag(","), nom::character::complete::u32::<&str, Error<&str>>)(input).unwrap();
+    let (o, moves) = separated_list0(tag(","), nom::character::complete::u32::<&str, Error<&str>>)
+        .parse(input)
+        .unwrap();
     let mut bingoboards = vec![];
     for line in o.split("\n\n") {
         if line.is_empty() {

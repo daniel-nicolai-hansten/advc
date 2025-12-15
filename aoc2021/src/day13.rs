@@ -15,9 +15,10 @@ fn parse(input: &str) -> (Vec<Pos>, Vec<FoldOp>) {
     let (i, pos) = separated_list0(
         line_ending::<&str, Error<&str>>,
         separated_pair(complete::u32.map(|n| n as usize), tag(","), complete::u32.map(|n| n as usize)),
-    )(input)
+    )
+    .parse(input)
     .unwrap();
-    let (i, _o) = many0(line_ending::<&str, Error<&str>>)(i).unwrap();
+    let (i, _o) = many0(line_ending::<&str, Error<&str>>).parse(i).unwrap();
     let (_i, ops) = separated_list0(
         line_ending,
         preceded(
@@ -28,7 +29,8 @@ fn parse(input: &str) -> (Vec<Pos>, Vec<FoldOp>) {
                 _ => unreachable!(),
             }),
         ),
-    )(i)
+    )
+    .parse(i)
     .unwrap();
     (pos, ops)
 }

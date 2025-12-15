@@ -5,7 +5,7 @@ use nom::{
     character::complete::{alpha1, line_ending, space1},
     multi::separated_list1,
     sequence::separated_pair,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -27,7 +27,8 @@ fn prse(input: &str) -> IResult<&str, Vec<(Vec<&str>, Vec<&str>)>> {
     separated_list1(
         line_ending,
         separated_pair(separated_list1(space1, alpha1), tag(" | "), separated_list1(space1, alpha1)),
-    )(input)
+    )
+    .parse(input)
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]

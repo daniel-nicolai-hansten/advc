@@ -1,13 +1,17 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::{branch::alt, bytes::complete::tag, character::complete, error::Error, sequence::preceded};
+use nom::{branch::alt, bytes::complete::tag, character::complete, error::Error, sequence::preceded, Parser};
 #[aoc_generator(day2)]
 fn parse(input: &str) -> Vec<Command> {
     let mut commands = Vec::new();
-    let fwd = |i| preceded(tag("forward "), complete::i32::<&str, Error<&str>>)(i).map(|(i2, n)| (i2, Command::Fwd(n)));
-    let dwn = |i| preceded(tag("down "), complete::i32)(i).map(|(i2, n)| (i2, Command::Dwn(n)));
-    let up = |i| preceded(tag("up "), complete::i32)(i).map(|(i2, n)| (i2, Command::Up(n)));
+    let fwd = |i| {
+        preceded(tag("forward "), complete::i32::<&str, Error<&str>>)
+            .parse(i)
+            .map(|(i2, n)| (i2, Command::Fwd(n)))
+    };
+    let dwn = |i| preceded(tag("down "), complete::i32).parse(i).map(|(i2, n)| (i2, Command::Dwn(n)));
+    let up = |i| preceded(tag("up "), complete::i32).parse(i).map(|(i2, n)| (i2, Command::Up(n)));
     for line in input.lines() {
-        let (_i, o) = alt((fwd, dwn, up))(line).unwrap();
+        let (_i, o) = alt((fwd, dwn, up)).parse(line).unwrap();
         commands.push(o);
     }
     commands
