@@ -1,8 +1,4 @@
-use std::{
-    cmp::Reverse,
-    collections::{BinaryHeap, HashSet},
-    fmt::Binary,
-};
+use std::collections::{BinaryHeap, HashSet};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
