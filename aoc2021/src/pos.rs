@@ -32,17 +32,7 @@ pub trait Coord {
             None
         }
     }
-    fn dir(&self, dir: &Dir, maxy: usize, maxx: usize) -> Option<Pos> {
-        match dir {
-            Dir::Up => self.up(),
-            Dir::Down => self.down(maxy),
-            Dir::Left => self.left(),
-            Dir::Right => self.right(maxx),
-        }
-    }
-    fn new(x: usize, y: usize) -> Pos {
-        (x, y)
-    }
+
     fn manhattan(&self, other: &Self) -> usize {
         self.x().abs_diff(other.x()) + self.y().abs_diff(other.y())
     }
@@ -85,11 +75,7 @@ pub enum Dir {
     Left,
     Right,
 }
-impl Dir {
-    pub fn dirs() -> Vec<Self> {
-        vec![Self::Up, Self::Down, Self::Left, Self::Right]
-    }
-}
+impl Dir {}
 impl Into<char> for Dir {
     fn into(self) -> char {
         match self {
