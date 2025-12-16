@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use nom::{bits::complete::take, bytes::complete::take as takeb, character::complete::hex_digit1, multi::many1, IResult, Parser};
+use nom::{bits::complete::take, bytes::complete::take as takeb, multi::many1, IResult, Parser};
 #[aoc_generator(day16)]
 fn parse(input: &str) -> Packet {
     let (_rest, data) = hex_to_bytes(input).unwrap();
@@ -26,27 +26,77 @@ impl Packet {
     }
     fn version_sum(&self) -> u64 {
         let mut sum = self.version as u64;
-        if let PacketContent::Operator(subpackets) = &self.content {
+        if let PacketContent::Operator((_, subpackets)) = &self.content {
             for sp in subpackets {
-                
                 sum += sp.version_sum();
             }
         }
         sum
     }
+    #[allow(dead_code)]
     fn display(&self, offset: usize) {
-        print!("{}", 0..offset.map(|_|' '));
-        match self.content {
-            PacketContent::Literal(n) => println!("Package: Literal: {}",n),
-            PacketContend::Operator => {println!("Package: Operator"); &self.display(offset +2);
+        print!("{}", (0..offset).map(|_| ' ').collect::<String>());
+        match &self.content {
+            PacketContent::Literal(n) => println!("Package:{} Literal: {}", self.version, n),
+            PacketContent::Operator((op, packets)) => {
+                println!("Package:{} Operator {:?}", self.version, op);
+                for p in packets.iter() {
+                    p.display(offset + 2);
+                }
+            }
+        }
+    }
+    fn value(&self) -> u64 {
+        match &self.content {
+            PacketContent::Literal(n) => *n,
+            PacketContent::Operator((op, packets)) => {
+                let values: Vec<u64> = packets.iter().map(|p| p.value()).collect();
+                match op {
+                    Op::Sum => values.iter().sum(),
+                    Op::Product => values.iter().product(),
+                    Op::Minimum => *values.iter().min().unwrap(),
+                    Op::Maximum => *values.iter().max().unwrap(),
+                    Op::GreaterThan if values[0] > values[1] => 1,
+                    Op::GreaterThan => 0,
+                    Op::LessThan if values[0] < values[1] => 1,
+                    Op::LessThan => 0,
+                    Op::EqualTo if values[0] == values[1] => 1,
+                    Op::EqualTo => 0,
+                }
+            }
         }
     }
 }
 #[derive(Debug, PartialEq, Eq)]
 enum PacketContent {
     Literal(u64),
-    Operator(Vec<Packet>),
+    Operator((Op, Vec<Packet>)),
 }
+#[derive(Debug, PartialEq, Eq)]
+enum Op {
+    Sum,
+    Product,
+    Minimum,
+    Maximum,
+    GreaterThan,
+    LessThan,
+    EqualTo,
+}
+impl Op {
+    fn from_type_id(type_id: u8) -> Self {
+        match type_id {
+            0 => Op::Sum,
+            1 => Op::Product,
+            2 => Op::Minimum,
+            3 => Op::Maximum,
+            5 => Op::GreaterThan,
+            6 => Op::LessThan,
+            7 => Op::EqualTo,
+            _ => unimplemented!(),
+        }
+    }
+}
+
 impl PacketContent {
     fn from_bits(mut input: (&[u8], usize), type_id: u8) -> IResult<(&[u8], usize), Self> {
         match type_id {
@@ -63,7 +113,7 @@ impl PacketContent {
                 }
                 Ok((input, PacketContent::Literal(value)))
             }
-            _operator => {
+            operator => {
                 let mut ret = vec![];
                 let (rest, length_type_id): ((&[u8], usize), u8) = take(1_usize).parse(input)?;
                 input = rest;
@@ -78,11 +128,11 @@ impl PacketContent {
                             ret.push(packet);
                             subpacket_rest = new_rest;
                         }
+                        input = subpacket_rest;
                     }
                     1 => {
                         let (rest, total_packets): ((&[u8], usize), u64) = take(11_usize).parse(input)?;
-                        input = rest;
-                        let mut subpacket_rest = input;
+                        let mut subpacket_rest = rest;
                         for _ in 0..total_packets as usize {
                             let (new_rest, packet) = Packet::from_bits(subpacket_rest)?;
                             ret.push(packet);
@@ -94,7 +144,7 @@ impl PacketContent {
                 }
 
                 // Parse operator packet
-                Ok((input, PacketContent::Operator(ret)))
+                Ok((input, PacketContent::Operator((Op::from_type_id(operator), ret))))
             }
         }
     }
@@ -104,10 +154,10 @@ fn part1(input: &Packet) -> u64 {
     input.version_sum()
 }
 
-// #[aoc(day16, part2)]
-// fn part2(input: &str) -> String {
-//     todo!()
-// }
+#[aoc(day16, part2)]
+fn part2(packet: &Packet) -> u64 {
+    packet.value()
+}
 
 #[cfg(test)]
 mod tests {
@@ -118,13 +168,11 @@ mod tests {
 
     #[test]
     fn part1_example() {
-        let pkg = parse("C0015000016115A2E0802F182340");
-        println!("Parsed package: {:?}", pkg);
-        // assert_eq!(part1(&parse(PKG1)), 6);
-        // assert_eq!(part1(&parse(PKG2)), 9);
-        // assert_eq!(part1(&parse(PKG3)), 14);
+        assert_eq!(part1(&parse(PKG1)), 6);
+        assert_eq!(part1(&parse(PKG2)), 9);
+        assert_eq!(part1(&parse(PKG3)), 14);
         assert_eq!(part1(&parse("8A004A801A8002F478")), 16);
-        // assert_eq!(part1(&parse("C0015000016115A2E0802F182340")), 23);
+        assert_eq!(part1(&parse("C0015000016115A2E0802F182340")), 23);
     }
 
     // #[test]
