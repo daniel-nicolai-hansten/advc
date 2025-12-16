@@ -28,11 +28,18 @@ impl Packet {
         let mut sum = self.version as u64;
         if let PacketContent::Operator(subpackets) = &self.content {
             for sp in subpackets {
-                println!("Subpacket: {:?}", sp);
+                
                 sum += sp.version_sum();
             }
         }
         sum
+    }
+    fn display(&self, offset: usize) {
+        print!("{}", 0..offset.map(|_|' '));
+        match self.content {
+            PacketContent::Literal(n) => println!("Package: Literal: {}",n),
+            PacketContend::Operator => {println!("Package: Operator"); &self.display(offset +2);
+        }
     }
 }
 #[derive(Debug, PartialEq, Eq)]
