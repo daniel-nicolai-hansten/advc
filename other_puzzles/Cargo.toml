@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [[bin]]
+name = "kister"
+path = "src/kister/main.rs"
+
+[[bin]]
 name = "hest_er_best"
 path = "src/hest_er_best/main.rs"
 
@@ -20,3 +24,4 @@ itertools = "0.14.0"
 common = { path = "../common" }
 rand = "0.10.1"
 prompted = "0.2.8"
+cached = "0.59.0"
