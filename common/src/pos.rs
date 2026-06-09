@@ -76,8 +76,8 @@ impl Pos<Position> for Position {
     fn new() -> Position {
         (0, 0)
     }
-    
-  fn move_in_direction(&self, direction: &Direction, steps: usize) -> Result<Position, PositionError> {
+
+    fn move_in_direction(&self, direction: &Direction, steps: usize) -> Result<Position, PositionError> {
         match direction {
             Direction::North => Ok((self.0, self.1 + steps)),
             Direction::East => Ok((self.0 + steps, self.1)),
@@ -85,7 +85,10 @@ impl Pos<Position> for Position {
             Direction::West => Ok((self.0.checked_sub(steps).ok_or(PositionError::OutOfBounds)?, self.1)),
             Direction::Northeast => Ok((self.0 + steps, self.1 + steps)),
             Direction::Southeast => Ok((self.0 + steps, self.1.checked_sub(steps).ok_or(PositionError::OutOfBounds)?)),
-            Direction::Southwest => Ok((self.0.checked_sub(steps).ok_or(PositionError::OutOfBounds)?, self.1.checked_sub(steps).ok_or(PositionError::OutOfBounds)?)),
+            Direction::Southwest => Ok((
+                self.0.checked_sub(steps).ok_or(PositionError::OutOfBounds)?,
+                self.1.checked_sub(steps).ok_or(PositionError::OutOfBounds)?,
+            )),
             Direction::Northwest => Ok((self.0.checked_sub(steps).ok_or(PositionError::OutOfBounds)?, self.1 + steps)),
         }
     }
@@ -98,7 +101,7 @@ impl Pos<IPosition> for IPosition {
     fn new() -> IPosition {
         (0, 0)
     }
-  fn move_in_direction(&self, direction: &Direction, steps: usize) -> Result<IPosition, PositionError> {
+    fn move_in_direction(&self, direction: &Direction, steps: usize) -> Result<IPosition, PositionError> {
         let steps = steps as isize;
         match direction {
             Direction::North => Ok((self.0, self.1 + steps)),

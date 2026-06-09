@@ -11,8 +11,12 @@ path = "src/hest_er_best/main.rs"
 name = "battleship"
 path = "src/battleship/main.rs"
 
+[[bin]]
+name = "domino"
+path = "src/domino/main.rs"
+
 [dependencies]
 itertools = "0.14.0"
 common = { path = "../common" }
-rand = "0.9.2"
+rand = "0.10.1"
 prompted = "0.2.8"

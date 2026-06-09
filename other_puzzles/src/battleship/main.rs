@@ -3,7 +3,7 @@
 use common::pos::{Pos, Position};
 use itertools::Itertools;
 use prompted::input;
-use rand::{Rng, seq::IndexedRandom};
+use rand::{RngExt, seq::IndexedRandom};
 
 // Battleship - 5 spaces - 3 shots
 // Cruiser - 4 spaces - 2 shots
@@ -223,7 +223,7 @@ impl Board {
             .cartesian_product(0..BOARD_SIZE)
             .filter(|&(x, y)| !self.grid[x][y].has_been_shot() || shots.contains(&(x, y)) == false)
             .collect();
-        let rand_positions: Vec<Position> = positions_not_tried.choose_multiple(&mut rand::rng(), n).cloned().collect();
+        let rand_positions: Vec<Position> = positions_not_tried.sample(&mut rand::rng(), n).cloned().collect();
         shots.extend(rand_positions);
         shots.truncate(n);
         shots
