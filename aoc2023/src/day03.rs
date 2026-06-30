@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use rand::Rng;
+use rand::{Rng, RngExt};
 use rustc_hash::FxHashMap as HashMap;
 use std::vec;
 
@@ -145,42 +145,18 @@ impl Pos {
         let mut ret = vec![];
         if self.x > 0 {
             if self.y > 0 {
-                ret.push(Pos {
-                    x: self.x - 1,
-                    y: self.y - 1,
-                });
+                ret.push(Pos { x: self.x - 1, y: self.y - 1 });
             }
-            ret.push(Pos {
-                x: self.x - 1,
-                y: self.y,
-            });
-            ret.push(Pos {
-                x: self.x - 1,
-                y: self.y + 1,
-            });
+            ret.push(Pos { x: self.x - 1, y: self.y });
+            ret.push(Pos { x: self.x - 1, y: self.y + 1 });
         }
         if self.y > 0 {
-            ret.push(Pos {
-                x: self.x,
-                y: self.y - 1,
-            });
-            ret.push(Pos {
-                x: self.x + 1,
-                y: self.y - 1,
-            });
+            ret.push(Pos { x: self.x, y: self.y - 1 });
+            ret.push(Pos { x: self.x + 1, y: self.y - 1 });
         }
-        ret.push(Pos {
-            x: self.x + 1,
-            y: self.y,
-        });
-        ret.push(Pos {
-            x: self.x + 1,
-            y: self.y + 1,
-        });
-        ret.push(Pos {
-            x: self.x,
-            y: self.y + 1,
-        });
+        ret.push(Pos { x: self.x + 1, y: self.y });
+        ret.push(Pos { x: self.x + 1, y: self.y + 1 });
+        ret.push(Pos { x: self.x, y: self.y + 1 });
         ret
     }
 }
@@ -188,14 +164,14 @@ impl Pos {
 struct PartNum {
     digits: Vec<char>,
     pos: Vec<Pos>,
-    id: usize,
+    id: u64,
 }
 impl PartNum {
     fn new() -> Self {
         Self {
             digits: vec![],
             pos: vec![],
-            id: rand::thread_rng().gen(),
+            id: rand::random(),
         }
     }
     fn add(&mut self, c: char, pos: Pos) {
@@ -212,7 +188,7 @@ impl PartNum {
     fn clear(&mut self) {
         self.digits.clear();
         self.pos.clear();
-        self.id = rand::thread_rng().gen();
+        self.id = rand::random();
     }
 }
 
